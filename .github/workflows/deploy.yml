@@ -1,0 +1,36 @@
+name: verify-build-deploy
+on:
+  push: { branches: [main] }
+  pull_request: { branches: [main] }
+permissions: { contents: read, packages: write, id-token: write }
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -e 'backend/[dev]'
+      - run: cd backend && pytest tests/ -v
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - run: cd frontend && npm ci && npm run build
+      - uses: azure/setup-kubectl@v4
+      - run: kubectl apply --dry-run=client -f k8s/
+  build-and-deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with: { registry: ghcr.io, username: ${{ github.actor }}, password: ${{ secrets.GITHUB_TOKEN }} }
+      - uses: docker/build-push-action@v6
+        with: { context: ./backend, push: true, tags: ghcr.io/${{ github.repository_owner }}/matchpulse-api:${{ github.sha }} }
+      - uses: docker/build-push-action@v6
+        with: { context: ./frontend, push: true, tags: ghcr.io/${{ github.repository_owner }}/matchpulse-web:${{ github.sha }} }
+      - uses: azure/login@v2
+        with: { creds: ${{ secrets.AZURE_CREDENTIALS }} }
+      - uses: azure/aks-set-context@v4
+        with: { resource-group: ${{ secrets.AZURE_RESOURCE_GROUP }}, cluster-name: ${{ secrets.AKS_CLUSTER_NAME }} }
+      - run: kubectl apply -f k8s/ && kubectl rollout status deployment/matchpulse-api --timeout=120s && kubectl rollout status deployment/matchpulse-web --timeout=120s

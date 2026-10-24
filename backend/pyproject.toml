@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "matchpulse-api"
+version = "0.1.0"
+description = "MatchPulse – Evidence-first football intelligence platform"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "agent-framework-core>=1.21.0,<2.0",
+    "redis>=5.0.0,<7.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "httpx>=0.25.0",
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.23.0",
+]
+foundry = [
+    "agent-framework-foundry>=1.15.0,<2.0",
+    "azure-identity>=1.17.0,<2.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+where = ["."]

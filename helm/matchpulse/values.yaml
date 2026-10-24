@@ -1,0 +1,8 @@
+api:
+  image: ghcr.io/git-aroy/matchpulse-api:latest
+  replicas: 3
+web:
+  image: ghcr.io/git-aroy/matchpulse-web:latest
+  replicas: 2
+ingress:
+  host: matchpulse.example.com

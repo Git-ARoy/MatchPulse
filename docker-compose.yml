@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - MATCHPULSE_ENV=development
+      - MATCHPULSE_LOG_LEVEL=INFO
+      - MATCHPULSE_CORS_ORIGINS=http://localhost:3000
+      # Optional AI/Cloud integrations (not required for local dev)
+      # - AZURE_FOUNDRY_ENDPOINT=
+      # - AZURE_FOUNDRY_API_KEY=
+      # - COSMOS_DB_ENDPOINT=
+      # - COSMOS_DB_KEY=
+      # - APPINSIGHTS_CONNECTION_STRING=
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend

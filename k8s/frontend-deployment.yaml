@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matchpulse-web
+  labels: { app.kubernetes.io/name: matchpulse-web }
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+  selector: { matchLabels: { app.kubernetes.io/name: matchpulse-web } }
+  template:
+    metadata: { labels: { app.kubernetes.io/name: matchpulse-web } }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: web
+          image: ghcr.io/git-aroy/matchpulse-web:latest
+          ports: [{ containerPort: 3000, name: http }]
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: ["ALL"] } }
+          resources: { requests: { cpu: 150m, memory: 256Mi }, limits: { cpu: 750m, memory: 768Mi } }
+          livenessProbe: { httpGet: { path: /, port: http }, initialDelaySeconds: 10 }
+          readinessProbe: { httpGet: { path: /, port: http }, initialDelaySeconds: 5 }
+          envFrom: [{ secretRef: { name: matchpulse-web-secrets, optional: true } }]

@@ -1,0 +1,5 @@
+import { signIn } from "../../auth";
+
+export default function LoginPage() {
+  return <main className="auth-page"><section className="auth-card"><p className="eyebrow">MatchPulse access</p><h1>Enter the match room.</h1><form action={async () => { "use server"; await signIn("google", { redirectTo: "/dashboard" }); }}><button className="primary-cta" type="submit">Continue with Google</button></form><div className="auth-divider">or use your organisation credentials</div><form action={async (formData) => { "use server"; await signIn("credentials", formData); }}><label>Email<input required name="email" type="email" autoComplete="email" /></label><label>Password<input required name="password" type="password" autoComplete="current-password" /></label><button className="secondary-cta" type="submit">Sign in</button></form><p className="auth-note">Google OAuth requires GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and AUTH_SECRET. Credentials require AUTH_CREDENTIALS_EMAIL and AUTH_CREDENTIALS_PASSWORD.</p></section></main>;
+}

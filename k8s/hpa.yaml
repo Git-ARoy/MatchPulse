@@ -1,0 +1,21 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: matchpulse-api }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: matchpulse-api }
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }
+    - type: Resource
+      resource: { name: memory, target: { type: Utilization, averageUtilization: 70 } }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: matchpulse-web }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: matchpulse-web }
+  minReplicas: 2
+  maxReplicas: 10
+  metrics: [{ type: Resource, resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } } }]
