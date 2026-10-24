@@ -39,9 +39,13 @@ class StatsBombOpenDataAdapter:
         configured = root or os.getenv("STATSBOMB_OPEN_DATA_ROOT", "")
         if not configured:
             raise StatsBombDataError("STATSBOMB_OPEN_DATA_ROOT is not configured")
-        self.root = Path(configured).expanduser().resolve()
-        if not self.root.exists():
-            raise StatsBombDataError(f"StatsBomb Open Data root does not exist: {self.root}")
+        configured_root = Path(configured).expanduser().resolve()
+        if not configured_root.exists():
+            raise StatsBombDataError(f"StatsBomb Open Data root does not exist: {configured_root}")
+        # Accept either the repository checkout or its data/ directory. This
+        # avoids a common setup failure when users clone the repo and point the
+        # environment variable at the nested data folder.
+        self.root = configured_root.parent if configured_root.name == "data" else configured_root
 
     def list_matches(self, competition_id: int | None = None, season_id: int | None = None) -> list[StatsBombMatch]:
         matches: list[StatsBombMatch] = []
@@ -58,6 +62,11 @@ class StatsBombOpenDataAdapter:
                     event_count = len(self._read_json(self._events_path(source_id))) if self._events_path(source_id).exists() else 0
                     matches.append(self._match_summary(match, source_id, event_count))
         return matches
+
+    def list_available_matches(self, competition_id: int | None = None, season_id: int | None = None, limit: int = 100) -> list[StatsBombMatch]:
+        if limit < 1 or limit > 500:
+            raise StatsBombDataError("limit must be between 1 and 500")
+        return self.list_matches(competition_id, season_id)[:limit]
 
     def load_match(self, source_match_id: str) -> tuple[StatsBombMatch | None, list[CanonicalEvent]]:
         events_path = self._events_path(source_match_id)

@@ -189,3 +189,24 @@ def test_statsbomb_import_marks_completed_match_as_not_live(client, tmp_path, mo
     assert state["data_source"] == "statsbomb-open-data"
     assert state["live_feed_available"] is False
     assert state["historical"] is True
+
+
+def test_statsbomb_match_discovery_lists_importable_matches(client, tmp_path, monkeypatch):
+    matches = tmp_path / "data" / "matches" / "1"
+    events = tmp_path / "data" / "events"
+    matches.mkdir(parents=True)
+    events.mkdir(parents=True)
+    (matches / "2.json").write_text(json.dumps([{
+        "match_id": 77,
+        "match_date": "2020-01-01",
+        "home_team": {"home_team_name": "Ridge United"},
+        "away_team": {"away_team_name": "Harbor FC"},
+        "competition": {"competition_name": "Demo League"},
+        "season": {"season_name": "2020/21"},
+    }]))
+    (events / "77.json").write_text("[]")
+    monkeypatch.setenv("STATSBOMB_OPEN_DATA_ROOT", str(tmp_path))
+    response = client.get("/api/v1/import/statsbomb/matches?competition_id=1&season_id=2")
+    assert response.status_code == 200
+    assert response.json()["items"][0]["source_match_id"] == "77"
+    assert response.json()["live_feed_available"] is False

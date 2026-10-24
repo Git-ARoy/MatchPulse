@@ -24,6 +24,8 @@ from app.schemas.api import (
     FixtureResponse,
     IngestEventResponse,
     InsightsResponse,
+    StatsBombMatchesResponse,
+    StatsBombMatchResponse,
     StatsBombImportResponse,
 )
 from app.services.match_service import (
@@ -132,6 +134,25 @@ async def import_statsbomb_match(source_match_id: str, request: Request) -> Stat
         published_insight_ids=insight_ids,
         errors=errors[:20],
     )
+
+
+@app.get("/api/v1/import/statsbomb/matches", response_model=StatsBombMatchesResponse)
+def list_statsbomb_matches(
+    request: Request,
+    competition_id: int | None = None,
+    season_id: int | None = None,
+    limit: int = 100,
+) -> StatsBombMatchesResponse | JSONResponse:
+    """List completed Open Data matches available for import.
+
+    This is deliberately a read-only discovery endpoint. Open Data contains
+    historical matches, so every item is explicitly marked as non-live.
+    """
+    try:
+        matches = StatsBombOpenDataAdapter().list_available_matches(competition_id, season_id, limit)
+    except StatsBombDataError as error:
+        return error_response(request, 422, "STATSBOMB_IMPORT_ERROR", str(error))
+    return StatsBombMatchesResponse(items=[StatsBombMatchResponse(**match.__dict__) for match in matches])
 
 
 async def publish_ingestion(match_id: str, event: CanonicalEvent, outcome: object) -> None:

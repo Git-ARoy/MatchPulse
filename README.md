@@ -92,7 +92,8 @@ MatchPulse includes a replaceable adapter for the [Hudl/StatsBomb Open Data repo
 ```bash
 git clone https://github.com/hudl/open-data.git /path/to/open-data
 export STATSBOMB_OPEN_DATA_ROOT=/path/to/open-data
-curl -X POST http://localhost:8000/api/v1/import/statsbomb/123
+curl http://localhost:8000/api/v1/import/statsbomb/matches
+curl -X POST http://localhost:8000/api/v1/import/statsbomb/<source_match_id>
 ```
 
 Imported events are normalized to `event-v1`, retain source IDs and metadata, and are sorted by match clock. The resulting match is marked `historical: true` and `live_feed_available: false`; the dashboard explicitly says live feed is unavailable. A future provider can publish the same canonical events without changing analytics or UI contracts.

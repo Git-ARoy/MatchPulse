@@ -95,6 +95,23 @@ class StatsBombImportResponse(BaseModel):
     errors: list[str] = Field(default_factory=list)
 
 
+class StatsBombMatchResponse(BaseModel):
+    source_match_id: str
+    match_id: str
+    home_team: str | None = None
+    away_team: str | None = None
+    match_date: str | None = None
+    competition: str | None = None
+    season: str | None = None
+    event_count: int
+
+
+class StatsBombMatchesResponse(BaseModel):
+    items: list[StatsBombMatchResponse]
+    data_source: str = "statsbomb-open-data"
+    live_feed_available: bool = False
+
+
 class EvidenceResponse(BaseModel):
     evidence_id: str
     insight_id: str
