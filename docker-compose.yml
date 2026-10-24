@@ -12,8 +12,8 @@ services:
       - MATCHPULSE_LOG_LEVEL=INFO
       - MATCHPULSE_CORS_ORIGINS=http://localhost:3000
       # Optional AI/Cloud integrations (not required for local dev)
-      # - AZURE_FOUNDRY_ENDPOINT=
-      # - AZURE_FOUNDRY_API_KEY=
+      # - FOUNDRY_PROJECT_ENDPOINT=
+      # - FOUNDRY_MODEL=
       # - COSMOS_DB_ENDPOINT=
       # - COSMOS_DB_KEY=
       # - APPINSIGHTS_CONNECTION_STRING=

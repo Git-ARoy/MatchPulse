@@ -60,12 +60,13 @@ export default function DashboardPage() {
   const refreshMatchData = useCallback(async () => {
     const state = await fetchMatchState(matchId);
     if (state) {
-      if (state.clock) setMatchClock({ min: state.clock.minute, sec: state.clock.second });
-      if (state.metrics?.ridge_united) {
-        setPressureIndex(state.metrics.ridge_united.value);
-        if (state.metrics.ridge_united.delta != null) {
-          const deltaSign = state.metrics.ridge_united.delta >= 0 ? "+" : "";
-          setPressureDelta(`${deltaSign}${state.metrics.ridge_united.delta.toFixed(1)}`);
+      if (state.match_clock) setMatchClock({ min: state.match_clock.minute, sec: state.match_clock.second });
+      const ridgeMetric = state.metrics?.["pressure_index:ridge_united"];
+      if (ridgeMetric) {
+        setPressureIndex(ridgeMetric.value);
+        if (ridgeMetric.delta != null) {
+          const deltaSign = ridgeMetric.delta >= 0 ? "+" : "";
+          setPressureDelta(`${deltaSign}${ridgeMetric.delta.toFixed(1)}`);
         }
       }
     }
@@ -91,7 +92,8 @@ export default function DashboardPage() {
 
   const handleInjectFixture = async (type: "pressure" | "goal" | "card" | "reset") => {
     setActiveFixture(type);
-    await injectFixture(matchId, type === "pressure" ? "pressure_shift" : type === "goal" ? "goal" : "quiet_period");
+    const fixtureName = type === "pressure" ? "pressure-swing" : type === "goal" ? "goal-sequence" : "quiet-period";
+    await injectFixture(matchId, fixtureName);
 
     if (type === "pressure") {
       setPressureIndex(86.2);
@@ -175,7 +177,7 @@ export default function DashboardPage() {
         return {
           badge: "TV COMMENTATOR TALKING POINT & LOWER-THIRD",
           title: "📺 GRAPHIC OVERLAY: RIDGE PRESSURE SPIKE (74.5) — 8 BOX ENTRIES IN 5 MINS",
-          desc: "Commentary note: Ridge United have completely pinned Harbor into their penalty area. Notice how every second ball is won by Declan Rice in the center of the park.",
+          desc: "Commentary note: Ridge United have completely pinned Harbor into their penalty area. Notice how every second ball is won by C. Sterling in the center of the park.",
           takeaway: "Broadcast Statistic: 14 shots for Ridge United vs 2 for Harbor FC in the second half.",
         };
       }

@@ -115,7 +115,7 @@ class InsightGenerator:
             ),
             "red_card": (
                 f"A red card was shown to a {team} player at {moment.match_clock.minute}'"
-                f"{moment.match_clock.second:02d}\". The match dynamic shifts with "
+                f"{moment.match_clock.second:02d}\". The match dynamic shifts with the dismissal. "
                 f"The evidence record should be reviewed alongside subsequent events."
             ),
             "shot_burst": (

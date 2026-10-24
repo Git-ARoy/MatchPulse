@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LanguageType } from "./PersonalizationBar";
-import { MatchRecap } from "../../lib/api";
+import { fetchMatchRecap, MatchRecap } from "../../lib/api";
 
 interface RecapModalProps {
   isOpen: boolean;
@@ -20,7 +20,7 @@ const RECAP_DATA_BY_LANG: Record<string, { headline: string; summary: string; mi
       "18' — Harbor FC early counter-threat (Shot on target, 98.4 km/h saved)",
       "42' — Tactical turnover equilibrium restored (PPDA 6.4 passes/action)",
       "72' — Match Analyst detects massive momentum surge (+41.0 Δ Pressure-v1)",
-      "84' — GOAL! Kane converts into right corner following box penetration",
+      "84' — GOAL! M. Vance converts into right corner following box penetration",
     ],
   },
   es: {
@@ -30,7 +30,7 @@ const RECAP_DATA_BY_LANG: Record<string, { headline: string; summary: string; mi
       "18' — Contragolpe peligroso de Harbor FC (Tiro a puerta a 98.4 km/h)",
       "42' — Recuperación táctica y control del mediocampo (PPDA 6.4)",
       "72' — Oleada de presión detectada (+41.0 Δ en intensidad)",
-      "84' — ¡GOL! Kane define al ángulo inferior derecho tras pase filtrado",
+      "84' — ¡GOL! M. Vance define al ángulo inferior derecho tras pase filtrado",
     ],
   },
   fr: {
@@ -40,7 +40,7 @@ const RECAP_DATA_BY_LANG: Record<string, { headline: string; summary: string; mi
       "18' — Alerte sur contre-attaque d'Harbor FC (Tir cadré 98.4 km/h)",
       "42' — Rétablissement de l'équilibre tactique au milieu de terrain",
       "72' — Détection d'un pic de pression majeur (+41.0 Δ)",
-      "84' — BUT ! Kane conclut avec précision dans le petit filet",
+      "84' — BUT ! M. Vance conclut avec précision dans le petit filet",
     ],
   },
   de: {
@@ -50,7 +50,7 @@ const RECAP_DATA_BY_LANG: Record<string, { headline: string; summary: string; mi
       "18' — Konterchance für Harbor FC (Torschuss mit 98,4 km/h pariert)",
       "42' — Taktische Balleroberung im Mittelfeld (PPDA 6,4)",
       "72' — Match Analyst meldet Druckanstieg (+41,0 Δ)",
-      "84' — TOR! Kane verwandelt nach Strafraumüberladung",
+      "84' — TOR! M. Vance verwandelt nach Strafraumüberladung",
     ],
   },
   ar: {
@@ -60,7 +60,7 @@ const RECAP_DATA_BY_LANG: Record<string, { headline: string; summary: string; mi
       "18' — هجمة مرتدة سريعة لهاربور (تسديدة بسرعة 98.4 كم/س)",
       "42' — استعادة السيطرة في خط الوسط والضغط العكسي",
       "72' — تصاعد مؤشر الضغط الهجومي بمقدار +41.0",
-      "84' — هدف! كين يسجل ببراعة في الزاوية اليمنى",
+      "84' — هدف! إم. فانس يسجل ببراعة في الزاوية اليمنى",
     ],
   },
   ja: {
@@ -70,7 +70,7 @@ const RECAP_DATA_BY_LANG: Record<string, { headline: string; summary: string; mi
       "18' — ハーバーFCの鋭いカウンター（時速98.4kmの枠内シュート）",
       "42' — 中盤でのハイプレスによるボール奪回（PPDA 6.4）",
       "72' — プレッシャー指数が急上昇（+41.0Δ）",
-      "84' — ゴール！ハリー・ケインが右隅へ冷静に流し込む",
+      "84' — ゴール！M. ヴァンスが右隅へ冷静に流し込む",
     ],
   },
 };
@@ -78,10 +78,31 @@ const RECAP_DATA_BY_LANG: Record<string, { headline: string; summary: string; mi
 export function RecapModal({ isOpen, onClose, matchId, score }: RecapModalProps) {
   const [lang, setLang] = useState<string>("en");
   const [copied, setCopied] = useState(false);
+  const [recapData, setRecapData] = useState<MatchRecap | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let isCancelled = false;
+    fetchMatchRecap(matchId, "fan", lang).then((data) => {
+      if (!isCancelled) {
+        setRecapData(data);
+      }
+    });
+    return () => {
+      isCancelled = true;
+    };
+  }, [isOpen, matchId, lang]);
 
   if (!isOpen) return null;
 
-  const currentRecap = RECAP_DATA_BY_LANG[lang] || RECAP_DATA_BY_LANG.en;
+  const fallback = RECAP_DATA_BY_LANG[lang] || RECAP_DATA_BY_LANG.en;
+  const currentRecap = recapData
+    ? {
+        headline: recapData.headline,
+        summary: recapData.summary,
+        milestones: recapData.milestones && recapData.milestones.length > 0 ? recapData.milestones : fallback.milestones,
+      }
+    : fallback;
 
   const handleCopyScript = () => {
     const text = `${currentRecap.headline}\n\n${currentRecap.summary}\n\nKey Milestones:\n${currentRecap.milestones.join("\n")}`;

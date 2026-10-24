@@ -21,14 +21,14 @@ interface PersonalizationProps {
 }
 
 const PLAYERS = [
-  { id: "h10", name: "H. Kane (#9, ST)", team: "Ridge United", speed: "33.8 km/h", dist: "10.4 km", passAcc: "86%", rating: "8.9" },
-  { id: "h7", name: "J. Bellingham (#8, CM)", team: "Ridge United", speed: "32.4 km/h", dist: "11.8 km", passAcc: "91%", rating: "8.7" },
-  { id: "h8", name: "P. Foden (#10, AM)", team: "Ridge United", speed: "31.2 km/h", dist: "10.6 km", passAcc: "89%", rating: "8.4" },
-  { id: "h9", name: "B. Saka (#7, RW)", team: "Ridge United", speed: "34.5 km/h", dist: "10.1 km", passAcc: "87%", rating: "8.6" },
-  { id: "h6", name: "D. Rice (#4, DM)", team: "Ridge United", speed: "30.1 km/h", dist: "12.2 km", passAcc: "94%", rating: "8.5" },
-  { id: "a1", name: "Alisson (#1, GK)", team: "Harbor FC", speed: "17.4 km/h", dist: "4.8 km", passAcc: "78%", rating: "7.9" },
-  { id: "a3", name: "V. van Dijk (#4, CB)", team: "Harbor FC", speed: "29.8 km/h", dist: "9.2 km", passAcc: "90%", rating: "7.8" },
-  { id: "a9", name: "M. Odegaard (#10, AM)", team: "Harbor FC", speed: "31.5 km/h", dist: "11.1 km", passAcc: "88%", rating: "7.6" },
+  { id: "h10", name: "M. Vance (#9, ST)", team: "Ridge United", speed: "33.8 km/h", dist: "10.4 km", passAcc: "86%", rating: "8.9" },
+  { id: "h7", name: "L. Thorne (#8, CM)", team: "Ridge United", speed: "32.4 km/h", dist: "11.8 km", passAcc: "91%", rating: "8.7" },
+  { id: "h8", name: "A. Silva (#10, AM)", team: "Ridge United", speed: "31.2 km/h", dist: "10.6 km", passAcc: "89%", rating: "8.4" },
+  { id: "h9", name: "K. Mercer (#7, RW)", team: "Ridge United", speed: "34.5 km/h", dist: "10.1 km", passAcc: "87%", rating: "8.6" },
+  { id: "h6", name: "C. Sterling (#4, DM)", team: "Ridge United", speed: "30.1 km/h", dist: "12.2 km", passAcc: "94%", rating: "8.5" },
+  { id: "a1", name: "E. Keller (#1, GK)", team: "Harbor FC", speed: "17.4 km/h", dist: "4.8 km", passAcc: "78%", rating: "7.9" },
+  { id: "a3", name: "R. Faulkner (#4, CB)", team: "Harbor FC", speed: "29.8 km/h", dist: "9.2 km", passAcc: "90%", rating: "7.8" },
+  { id: "a9", name: "T. Lindqvist (#10, AM)", team: "Harbor FC", speed: "31.5 km/h", dist: "11.1 km", passAcc: "88%", rating: "7.6" },
 ];
 
 export function PersonalizationBar({

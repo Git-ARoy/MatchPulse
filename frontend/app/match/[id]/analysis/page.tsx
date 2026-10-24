@@ -19,32 +19,32 @@ interface PlayerPos {
 
 // 4-3-3 Attacking Phase for Ridge United (Home - Emerald)
 const HOME_PLAYERS_ATTACK: PlayerPos[] = [
-  { id: "h1", num: 1, name: "Pickford", team: "home", pos: "GK", x: 6, y: 50, stats: { passes: 22, accuracy: "84%", speed: "18.2 km/h", dist: "4.2 km", passDifficulty: "45/100" } },
-  { id: "h2", num: 2, name: "Walker", team: "home", pos: "RB", x: 48, y: 15, stats: { passes: 54, accuracy: "91%", speed: "34.2 km/h", dist: "10.8 km", passDifficulty: "62/100" } },
-  { id: "h3", num: 5, name: "Stones", team: "home", pos: "CB", x: 38, y: 38, stats: { passes: 68, accuracy: "95%", speed: "27.4 km/h", dist: "9.5 km", passDifficulty: "55/100" } },
-  { id: "h4", num: 6, name: "Dias", team: "home", pos: "CB", x: 38, y: 62, stats: { passes: 72, accuracy: "93%", speed: "28.0 km/h", dist: "9.7 km", passDifficulty: "58/100" } },
-  { id: "h5", num: 3, name: "Shaw", team: "home", pos: "LB", x: 52, y: 85, stats: { passes: 49, accuracy: "88%", speed: "30.5 km/h", dist: "10.2 km", passDifficulty: "65/100" } },
-  { id: "h6", num: 4, name: "Rice", team: "home", pos: "DM", x: 50, y: 50, stats: { passes: 61, accuracy: "94%", speed: "30.1 km/h", dist: "12.2 km", passDifficulty: "70/100" } },
-  { id: "h7", num: 8, name: "Bellingham", team: "home", pos: "CM", x: 65, y: 34, stats: { passes: 45, accuracy: "91%", speed: "32.4 km/h", dist: "11.8 km", passDifficulty: "78/100" } },
-  { id: "h8", num: 10, name: "Foden", team: "home", pos: "AM", x: 68, y: 66, stats: { passes: 51, accuracy: "89%", speed: "31.2 km/h", dist: "10.6 km", passDifficulty: "82/100" } },
-  { id: "h9", num: 7, name: "Saka", team: "home", pos: "RW", x: 78, y: 20, stats: { passes: 38, accuracy: "87%", speed: "34.5 km/h", dist: "10.1 km", passDifficulty: "85/100" } },
-  { id: "h10", num: 9, name: "Kane", team: "home", pos: "ST", x: 82, y: 50, stats: { passes: 29, accuracy: "86%", speed: "33.8 km/h", dist: "10.4 km", passDifficulty: "88/100" } },
-  { id: "h11", num: 11, name: "Gordon", team: "home", pos: "LW", x: 79, y: 80, stats: { passes: 34, accuracy: "86%", speed: "34.1 km/h", dist: "10.5 km", passDifficulty: "80/100" } },
+  { id: "h1", num: 1, name: "J. Vance", team: "home", pos: "GK", x: 6, y: 50, stats: { passes: 22, accuracy: "84%", speed: "18.2 km/h", dist: "4.2 km", passDifficulty: "45/100" } },
+  { id: "h2", num: 2, name: "M. Hayes", team: "home", pos: "RB", x: 48, y: 15, stats: { passes: 54, accuracy: "91%", speed: "34.2 km/h", dist: "10.8 km", passDifficulty: "62/100" } },
+  { id: "h3", num: 5, name: "D. Ward", team: "home", pos: "CB", x: 38, y: 38, stats: { passes: 68, accuracy: "95%", speed: "27.4 km/h", dist: "9.5 km", passDifficulty: "55/100" } },
+  { id: "h4", num: 6, name: "L. Silva", team: "home", pos: "CB", x: 38, y: 62, stats: { passes: 72, accuracy: "93%", speed: "28.0 km/h", dist: "9.7 km", passDifficulty: "58/100" } },
+  { id: "h5", num: 3, name: "O. Brooks", team: "home", pos: "LB", x: 52, y: 85, stats: { passes: 49, accuracy: "88%", speed: "30.5 km/h", dist: "10.2 km", passDifficulty: "65/100" } },
+  { id: "h6", num: 4, name: "C. Sterling", team: "home", pos: "DM", x: 50, y: 50, stats: { passes: 61, accuracy: "94%", speed: "30.1 km/h", dist: "12.2 km", passDifficulty: "70/100" } },
+  { id: "h7", num: 8, name: "L. Thorne", team: "home", pos: "CM", x: 65, y: 34, stats: { passes: 45, accuracy: "91%", speed: "32.4 km/h", dist: "11.8 km", passDifficulty: "78/100" } },
+  { id: "h8", num: 10, name: "A. Silva", team: "home", pos: "AM", x: 68, y: 66, stats: { passes: 51, accuracy: "89%", speed: "31.2 km/h", dist: "10.6 km", passDifficulty: "82/100" } },
+  { id: "h9", num: 7, name: "K. Mercer", team: "home", pos: "RW", x: 78, y: 20, stats: { passes: 38, accuracy: "87%", speed: "34.5 km/h", dist: "10.1 km", passDifficulty: "85/100" } },
+  { id: "h10", num: 9, name: "M. Vance", team: "home", pos: "ST", x: 82, y: 50, stats: { passes: 29, accuracy: "86%", speed: "33.8 km/h", dist: "10.4 km", passDifficulty: "88/100" } },
+  { id: "h11", num: 11, name: "E. Cole", team: "home", pos: "LW", x: 79, y: 80, stats: { passes: 34, accuracy: "86%", speed: "34.1 km/h", dist: "10.5 km", passDifficulty: "80/100" } },
 ];
 
 // 4-2-3-1 Low Defensive Block for Harbor FC (Away - Royal Blue)
 const AWAY_PLAYERS_DEFENSE: PlayerPos[] = [
-  { id: "a1", num: 1, name: "Alisson", team: "away", pos: "GK", x: 94, y: 50, stats: { passes: 19, accuracy: "78%", speed: "17.4 km/h", dist: "4.8 km", passDifficulty: "50/100" } },
-  { id: "a2", num: 2, name: "Trippier", team: "away", pos: "RB", x: 84, y: 22, stats: { passes: 32, accuracy: "76%", speed: "29.4 km/h", dist: "9.8 km", passDifficulty: "65/100" } },
-  { id: "a3", num: 4, name: "Van Dijk", team: "away", pos: "CB", x: 86, y: 40, stats: { passes: 44, accuracy: "90%", speed: "29.8 km/h", dist: "9.2 km", passDifficulty: "60/100" } },
-  { id: "a4", num: 5, name: "Saliba", team: "away", pos: "CB", x: 86, y: 60, stats: { passes: 41, accuracy: "90%", speed: "28.5 km/h", dist: "9.4 km", passDifficulty: "58/100" } },
-  { id: "a5", num: 3, name: "Robertson", team: "away", pos: "LB", x: 83, y: 78, stats: { passes: 36, accuracy: "81%", speed: "31.0 km/h", dist: "10.3 km", passDifficulty: "68/100" } },
-  { id: "a6", num: 6, name: "Rodri", team: "away", pos: "DM", x: 72, y: 42, stats: { passes: 52, accuracy: "92%", speed: "28.3 km/h", dist: "11.2 km", passDifficulty: "72/100" } },
-  { id: "a7", num: 8, name: "Guimaraes", team: "away", pos: "DM", x: 73, y: 58, stats: { passes: 47, accuracy: "88%", speed: "29.7 km/h", dist: "10.9 km", passDifficulty: "74/100" } },
-  { id: "a8", num: 7, name: "Bowen", team: "away", pos: "RM", x: 62, y: 25, stats: { passes: 24, accuracy: "74%", speed: "32.6 km/h", dist: "10.1 km", passDifficulty: "70/100" } },
-  { id: "a9", num: 10, name: "Odegaard", team: "away", pos: "AM", x: 64, y: 50, stats: { passes: 39, accuracy: "88%", speed: "31.5 km/h", dist: "11.1 km", passDifficulty: "84/100" } },
-  { id: "a10", num: 11, name: "Martinelli", team: "away", pos: "LM", x: 63, y: 75, stats: { passes: 28, accuracy: "77%", speed: "33.8 km/h", dist: "10.7 km", passDifficulty: "76/100" } },
-  { id: "a11", num: 9, name: "Watkins", team: "away", pos: "ST", x: 54, y: 50, stats: { passes: 18, accuracy: "70%", speed: "33.2 km/h", dist: "9.9 km", passDifficulty: "75/100" } },
+  { id: "a1", num: 1, name: "E. Keller", team: "away", pos: "GK", x: 94, y: 50, stats: { passes: 19, accuracy: "78%", speed: "17.4 km/h", dist: "4.8 km", passDifficulty: "50/100" } },
+  { id: "a2", num: 2, name: "N. Price", team: "away", pos: "RB", x: 84, y: 22, stats: { passes: 32, accuracy: "76%", speed: "29.4 km/h", dist: "9.8 km", passDifficulty: "65/100" } },
+  { id: "a3", num: 4, name: "R. Faulkner", team: "away", pos: "CB", x: 86, y: 40, stats: { passes: 44, accuracy: "90%", speed: "29.8 km/h", dist: "9.2 km", passDifficulty: "60/100" } },
+  { id: "a4", num: 5, name: "J. Mendez", team: "away", pos: "CB", x: 86, y: 60, stats: { passes: 41, accuracy: "90%", speed: "28.5 km/h", dist: "9.4 km", passDifficulty: "58/100" } },
+  { id: "a5", num: 3, name: "S. Clarke", team: "away", pos: "LB", x: 83, y: 78, stats: { passes: 36, accuracy: "81%", speed: "31.0 km/h", dist: "10.3 km", passDifficulty: "68/100" } },
+  { id: "a6", num: 6, name: "M. Santos", team: "away", pos: "DM", x: 72, y: 42, stats: { passes: 52, accuracy: "92%", speed: "28.3 km/h", dist: "11.2 km", passDifficulty: "72/100" } },
+  { id: "a7", num: 8, name: "D. Rossi", team: "away", pos: "DM", x: 73, y: 58, stats: { passes: 47, accuracy: "88%", speed: "29.7 km/h", dist: "10.9 km", passDifficulty: "74/100" } },
+  { id: "a8", num: 7, name: "H. Yates", team: "away", pos: "RM", x: 62, y: 25, stats: { passes: 24, accuracy: "74%", speed: "32.6 km/h", dist: "10.1 km", passDifficulty: "70/100" } },
+  { id: "a9", num: 10, name: "T. Lindqvist", team: "away", pos: "AM", x: 64, y: 50, stats: { passes: 39, accuracy: "88%", speed: "31.5 km/h", dist: "11.1 km", passDifficulty: "84/100" } },
+  { id: "a10", num: 11, name: "F. Vega", team: "away", pos: "LM", x: 63, y: 75, stats: { passes: 28, accuracy: "77%", speed: "33.8 km/h", dist: "10.7 km", passDifficulty: "76/100" } },
+  { id: "a11", num: 9, name: "J. Fletcher", team: "away", pos: "ST", x: 54, y: 50, stats: { passes: 18, accuracy: "70%", speed: "33.2 km/h", dist: "9.9 km", passDifficulty: "75/100" } },
 ];
 
 export default function AnalysisPage() {
@@ -52,7 +52,7 @@ export default function AnalysisPage() {
   const matchId = (params?.id as string) || "sim_match_001";
 
   const [tacticalPhase, setTacticalPhase] = useState<"attack" | "transition" | "defense">("attack");
-  const [selectedPlayer, setSelectedPlayer] = useState<PlayerPos | null>(HOME_PLAYERS_ATTACK[9]); // Kane selected
+  const [selectedPlayer, setSelectedPlayer] = useState<PlayerPos | null>(HOME_PLAYERS_ATTACK[9]); // M. Vance selected
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [showAutoEventing, setShowAutoEventing] = useState(false);
   const [timelineSec, setTimelineSec] = useState(4450); // ~74:10

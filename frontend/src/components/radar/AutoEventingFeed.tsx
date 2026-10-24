@@ -11,8 +11,8 @@ interface AutoEventingProps {
 export function AutoEventingFeed({ isOpen, onClose }: AutoEventingProps) {
   const [ballSpeed, setBallSpeed] = useState(48.2);
   const [detectedEvents, setDetectedEvents] = useState<string[]>([
-    "00:14.2 — [CV] Pass Classified: Distance 22.4m, Difficulty 68/100 (Kane → Foden)",
-    "00:18.8 — [CV] High Press Sprint Detected: Foden (31.2 km/h)",
+    "00:14.2 — [CV] Pass Classified: Distance 22.4m, Difficulty 68/100 (M. Vance → A. Silva)",
+    "00:18.8 — [CV] High Press Sprint Detected: A. Silva (31.2 km/h)",
     "00:22.1 — [CV] Ball Recovery Tracked: Coordinates (68, 44)",
     "00:26.5 — [CV] Shot Event Ingested: Velocity Vector 104.2 km/h",
   ]);
@@ -102,9 +102,9 @@ export function AutoEventingFeed({ isOpen, onClose }: AutoEventingProps) {
           }}
         />
 
-        {/* Bounding Box Player 1 (Kane) */}
+        {/* Bounding Box Player 1 (M. Vance) */}
         <div style={{ border: "1.5px dashed #00ff87", padding: "6px 10px", borderRadius: "4px", background: "rgba(0, 255, 135, 0.1)" }}>
-          <div style={{ fontSize: "10px", fontWeight: 800, color: "#00ff87" }}>[ID: RU-9 KANE]</div>
+          <div style={{ fontSize: "10px", fontWeight: 800, color: "#00ff87" }}>[ID: RU-9 M. VANCE]</div>
           <div style={{ fontSize: "11px", fontWeight: 900 }}>Speed: 33.8 km/h</div>
           <div style={{ fontSize: "9px", color: "rgba(255, 255, 255, 0.6)" }}>Confidence: 99.4%</div>
         </div>
@@ -115,9 +115,9 @@ export function AutoEventingFeed({ isOpen, onClose }: AutoEventingProps) {
           <div style={{ fontSize: "13px", fontWeight: 900 }}>{ballSpeed} km/h</div>
         </div>
 
-        {/* Bounding Box Player 2 (Van Dijk) */}
+        {/* Bounding Box Player 2 (R. Faulkner) */}
         <div style={{ border: "1.5px dashed #f43f5e", padding: "6px 10px", borderRadius: "4px", background: "rgba(244, 63, 94, 0.1)" }}>
-          <div style={{ fontSize: "10px", fontWeight: 800, color: "#f43f5e" }}>[ID: HF-4 VAN DIJK]</div>
+          <div style={{ fontSize: "10px", fontWeight: 800, color: "#f43f5e" }}>[ID: HF-4 R. FAULKNER]</div>
           <div style={{ fontSize: "11px", fontWeight: 900 }}>Speed: 29.8 km/h</div>
           <div style={{ fontSize: "9px", color: "rgba(255, 255, 255, 0.6)" }}>Confidence: 98.9%</div>
         </div>

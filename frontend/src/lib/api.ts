@@ -24,8 +24,11 @@ export interface MatchStateView {
     shots: number;
     shots_on_target: number;
   }>;
-  clock: { minute: number; second: number };
+  match_clock?: { minute: number; second: number };
+  clock?: { minute: number; second: number };
   metrics?: Record<string, {
+    name?: string;
+    team_id?: string;
     value: number;
     previous_window_value?: number;
     delta?: number;

@@ -64,7 +64,7 @@ export function BroadcastOverlay({
               <span style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.6)" }}>• 1080p50 SYNCHRONIZED</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "2px" }}>
-              <span style={{ fontSize: "20px", fontWeight: 900, letterSpacing: "-0.03em" }}>RIDGE 1 - 0 HARBOR</span>
+              <span style={{ fontSize: "20px", fontWeight: 900, letterSpacing: "-0.03em" }}>RIDGE {score} HARBOR</span>
               <span style={{ background: "rgba(255, 255, 255, 0.15)", padding: "2px 8px", borderRadius: "6px", fontSize: "12px", fontWeight: 800, color: "#00FF87" }}>
                 ⏱ {clock}
               </span>
