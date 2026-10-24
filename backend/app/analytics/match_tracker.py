@@ -166,18 +166,31 @@ def _handle_goal(ts: TeamState, event: CanonicalEvent) -> None:
     ts.shots += 1
     if event.attributes.get("on_target", True):
         ts.shots_on_target += 1
+    _record_shot_speed(ts, event)
 
 
 def _handle_shot(ts: TeamState, event: CanonicalEvent) -> None:
     ts.shots += 1
     if event.attributes.get("on_target", False):
         ts.shots_on_target += 1
+    _record_shot_speed(ts, event)
 
 
 def _handle_pass(ts: TeamState, event: CanonicalEvent) -> None:
     ts.passes += 1
     if event.attributes.get("completed", False):
         ts.passes_completed += 1
+    if (distance := event.attributes.get("distance_m")) is not None:
+        ts.pass_distance_total_m += float(distance)
+    if (difficulty := event.attributes.get("difficulty_rating")) is not None:
+        ts.pass_difficulty_total += float(difficulty)
+        ts.pass_difficulty_samples += 1
+
+
+def _record_shot_speed(ts: TeamState, event: CanonicalEvent) -> None:
+    if (speed := event.attributes.get("speed_kph")) is not None:
+        ts.shot_speed_total_kph += float(speed)
+        ts.shot_speed_samples += 1
 
 
 def _handle_tackle(ts: TeamState, _event: CanonicalEvent) -> None:

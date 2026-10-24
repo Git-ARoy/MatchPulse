@@ -29,7 +29,7 @@ class EvidenceContext(BaseModel):
     event_types: tuple[str, ...]
     zones: tuple[str, ...]
     metrics: tuple[MetricSnapshot, ...]
-    team_state: dict[str, dict[str, int]]
+    team_state: dict[str, dict[str, int | float]]
 
 
 class MatchAnalysisOutput(BaseModel):

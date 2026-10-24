@@ -1,36 +1,127 @@
 name: verify-build-deploy
+
 on:
-  push: { branches: [main] }
-  pull_request: { branches: [main] }
-permissions: { contents: read, packages: write, id-token: write }
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
 jobs:
   verify:
+    name: Verify Code & Builds
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-      - run: pip install -e 'backend/[dev]'
-      - run: cd backend && pytest tests/ -v
-      - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm, cache-dependency-path: frontend/package-lock.json }
-      - run: cd frontend && npm ci && npm run build
-      - uses: azure/setup-kubectl@v4
-      - run: kubectl apply --dry-run=client -f k8s/
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e './backend[dev]'
+
+      - name: Run backend pytest suite
+        run: |
+          cd backend && pytest tests/ -v
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend && npm ci
+
+      - name: Build frontend application
+        env:
+          AUTH_SECRET: "ci-build-auth-secret-32-chars-minimum-key"
+          NEXT_PUBLIC_API_URL: "http://localhost:8000"
+        run: |
+          cd frontend && npm run build
+
+      - name: Set up Kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Validate Kubernetes Manifests
+        run: |
+          kubectl apply --dry-run=client -f k8s/
+
   build-and-deploy:
+    name: Build & Package Containers
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: verify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/login-action@v3
-        with: { registry: ghcr.io, username: ${{ github.actor }}, password: ${{ secrets.GITHUB_TOKEN }} }
-      - uses: docker/build-push-action@v6
-        with: { context: ./backend, push: true, tags: ghcr.io/${{ github.repository_owner }}/matchpulse-api:${{ github.sha }} }
-      - uses: docker/build-push-action@v6
-        with: { context: ./frontend, push: true, tags: ghcr.io/${{ github.repository_owner }}/matchpulse-web:${{ github.sha }} }
-      - uses: azure/login@v2
-        with: { creds: ${{ secrets.AZURE_CREDENTIALS }} }
-      - uses: azure/aks-set-context@v4
-        with: { resource-group: ${{ secrets.AZURE_RESOURCE_GROUP }}, cluster-name: ${{ secrets.AKS_CLUSTER_NAME }} }
-      - run: kubectl apply -f k8s/ && kubectl rollout status deployment/matchpulse-api --timeout=120s && kubectl rollout status deployment/matchpulse-web --timeout=120s
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure Image Name & Secrets Context
+        run: |
+          # Docker tags strictly require lowercase repository names
+          LOWER_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_PREFIX=ghcr.io/${LOWER_OWNER}" >> $GITHUB_ENV
+          
+          # Detect whether Azure secrets are present
+          if [ -n "${{ secrets.AZURE_CREDENTIALS }}" ] && [ -n "${{ secrets.AZURE_RESOURCE_GROUP }}" ] && [ -n "${{ secrets.AKS_CLUSTER_NAME }}" ]; then
+            echo "HAS_AZURE_SECRETS=true" >> $GITHUB_ENV
+          else
+            echo "HAS_AZURE_SECRETS=false" >> $GITHUB_ENV
+          fi
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push Backend API Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/matchpulse-api:${{ github.sha }}
+            ${{ env.IMAGE_PREFIX }}/matchpulse-api:latest
+
+      - name: Build & Push Frontend Web Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/matchpulse-web:${{ github.sha }}
+            ${{ env.IMAGE_PREFIX }}/matchpulse-web:latest
+
+      - name: Azure Login
+        if: env.HAS_AZURE_SECRETS == 'true'
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set AKS Cluster Context
+        if: env.HAS_AZURE_SECRETS == 'true'
+        uses: azure/aks-set-context@v4
+        with:
+          resource-group: ${{ secrets.AZURE_RESOURCE_GROUP }}
+          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
+
+      - name: Deploy Manifests to AKS
+        if: env.HAS_AZURE_SECRETS == 'true'
+        run: |
+          kubectl apply -f k8s/
+          kubectl rollout status deployment/matchpulse-api --timeout=120s
+          kubectl rollout status deployment/matchpulse-web --timeout=120s

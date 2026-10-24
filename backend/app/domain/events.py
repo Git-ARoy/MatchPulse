@@ -17,6 +17,7 @@ _IDENTIFIER = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 _ATTRIBUTE_KEYS = {
     "completed", "on_target", "outcome", "recipient_player_id",
     "previous_team_id", "next_team_id", "intensity", "recovery_type",
+    "distance_m", "difficulty_rating", "speed_kph",
 }
 _SHOT_OUTCOMES = {"goal", "saved", "off_target", "blocked"}
 
@@ -112,6 +113,9 @@ class CanonicalEvent(BaseModel):
             raise ValueError("attributes.on_target must be a boolean")
         if "intensity" in value and (not isinstance(value["intensity"], (int, float)) or isinstance(value["intensity"], bool) or not 0 <= value["intensity"] <= 100):
             raise ValueError("attributes.intensity must be a number from 0 to 100")
+        for key, maximum in (("distance_m", 120), ("difficulty_rating", 100), ("speed_kph", 240)):
+            if key in value and (not isinstance(value[key], (int, float)) or isinstance(value[key], bool) or not 0 <= value[key] <= maximum):
+                raise ValueError(f"attributes.{key} must be a number from 0 to {maximum}")
         for key in ("recipient_player_id", "previous_team_id", "next_team_id", "recovery_type"):
             if key in value and (not isinstance(value[key], str) or not value[key].strip()):
                 raise ValueError(f"attributes.{key} must be a non-blank string")
@@ -129,6 +133,10 @@ class CanonicalEvent(BaseModel):
             raise ValueError("attributes.on_target is only valid for shot or goal events")
         if self.event_type != EventType.pass_ and any(key in self.attributes for key in ("completed", "recipient_player_id")):
             raise ValueError("pass attributes are only valid for pass events")
+        if self.event_type != EventType.pass_ and any(key in self.attributes for key in ("distance_m", "difficulty_rating")):
+            raise ValueError("pass-distance and difficulty attributes are only valid for pass events")
+        if self.event_type not in (EventType.shot, EventType.goal) and "speed_kph" in self.attributes:
+            raise ValueError("attributes.speed_kph is only valid for shot or goal events")
         if self.event_type != EventType.possession_change and any(key in self.attributes for key in ("previous_team_id", "next_team_id")):
             raise ValueError("possession transition attributes are only valid for possession_change events")
         if self.event_type != EventType.pressure_event and "intensity" in self.attributes:

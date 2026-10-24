@@ -61,6 +61,8 @@ class MatchSession:
     data_source: str = "canonical-api"
     live_feed_available: bool = True
     historical: bool = False
+    synthetic: bool = False
+    players: dict[str, dict] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         self.tracker = MatchTracker(self.match_id)
@@ -89,6 +91,7 @@ class MatchService:
             session.data_source = event.source.adapter
             session.historical = event.source.adapter == "statsbomb-open-data"
             session.live_feed_available = not session.historical
+            session.synthetic = event.source.adapter.startswith("synthetic")
         normalized = session.tracker.normalize_event(event)
         existing = session.events_by_id.get(normalized.event_id)
         if existing is not None:
@@ -107,6 +110,7 @@ class MatchService:
         session.events_by_id[normalized.event_id] = normalized
         self._event_match_ids[normalized.event_id] = normalized.match_id
         session.rolling.add_event(normalized)
+        self._update_player_summary(session, normalized)
 
         published: list[Insight] = []
         run_ids: list[str] = []
@@ -176,6 +180,17 @@ class MatchService:
         payload["data_source"] = session.data_source
         payload["historical"] = session.historical
         payload["live_feed_available"] = session.live_feed_available
+        payload["synthetic"] = session.synthetic
+        payload["players"] = sorted(session.players.values(), key=lambda player: (player["team_id"], player["player_id"]))
+        payload["team_metrics"] = {
+            team_id: {
+                "pass_completion_pct": round((team.passes_completed / team.passes) * 100, 1) if team.passes else None,
+                "average_pass_distance_m": round(team.pass_distance_total_m / team.passes, 1) if team.passes else None,
+                "average_pass_difficulty": round(team.pass_difficulty_total / team.pass_difficulty_samples, 1) if team.pass_difficulty_samples else None,
+                "average_shot_speed_kph": round(team.shot_speed_total_kph / team.shot_speed_samples, 1) if team.shot_speed_samples else None,
+            }
+            for team_id, team in state.teams.items()
+        }
         return payload
 
     def list_insights(self, match_id: str, limit: int, after: str | None) -> tuple[list[Insight], str | None]:
@@ -224,8 +239,128 @@ class MatchService:
         except KeyError as error:
             raise InsightNotFoundError("analysis run not found") from error
 
+    def build_recap(self, match_id: str, audience: str = "fan", language: str = "en") -> dict:
+        """Create a bounded recap from published, audited insights only."""
+        session = self._session(match_id)
+        if audience not in {"fan", "analyst", "broadcast"}:
+            raise ValueError("audience must be fan, analyst, or broadcast")
+        supported_languages = {"en", "es", "fr", "de", "ar", "ja"}
+        if language not in supported_languages:
+            raise ValueError(f"language must be one of {', '.join(sorted(supported_languages))}")
+        insights = session.insights[-3:]
+        scoreline = "-".join(str(team.goals) for team in session.tracker.state.teams.values()) or "0-0"
+        
+        milestones = []
+        turning_points = []
+        for item in session.insights:
+            clock = f"{item.match_clock.get('minute', 0)}'"
+            milestones.append(f"{clock} - {item.headline}")
+            turning_points.append(f"{clock} {item.insight_type.value.replace('_', ' ').title()}")
+
+        # Control vs chaos calculation from session tracker
+        total_events = len(session.events)
+        high_regains = sum(1 for e in session.events if e.event_type.value == "high_regain")
+        completed_passes = sum(1 for e in session.events if e.event_type.value == "pass" and e.attributes.get("completed", False))
+        control_pct = round((completed_passes / max(1, total_events)) * 100, 1)
+        chaos_pct = round((high_regains / max(1, total_events)) * 100, 1)
+        control_vs_chaos = {
+            "control_index": control_pct,
+            "chaos_index": chaos_pct,
+            "rhythm_pattern": "Tactical Positional Dominance" if control_pct > 40 else "High-Volatility Transitional Chaos",
+            "tactical_phase": "Structured Overload" if control_pct > chaos_pct else "End-to-End Counter Pressing",
+        }
+
+        if language == "es":
+            headline = f"Resumen verificado: {scoreline}"
+            summary = "No se detectaron momentos significativos en los eventos sintéticos registrados."
+            if insights:
+                summaries = [self._spanish_recap_line(item.insight_type.value) for item in insights]
+                summary = " ".join(summaries)
+        elif language == "fr":
+            headline = f"Résumé vérifié: {scoreline}"
+            summary = "Aucun moment significatif détecté dans les événements synthétiques enregistrés."
+            if insights:
+                summaries = [f"Moment clé vérifié: {item.headline}." for item in insights]
+                summary = " ".join(summaries)
+        elif language == "de":
+            headline = f"Verifizierter Spielbericht: {scoreline}"
+            summary = "In den synthetischen Ereignissen wurden keine signifikanten Momente festgestellt."
+            if insights:
+                summaries = [f"Verifizierter Moment: {item.headline}." for item in insights]
+                summary = " ".join(summaries)
+        elif language == "ar":
+            headline = f"ملخص المباراة المعتمد: {scoreline}"
+            summary = "لم يتم الكشف عن لحظات فارقة في أحداث المباراة المسجلة."
+            if insights:
+                summaries = [f"لحظة معتمدة: {item.headline}." for item in insights]
+                summary = " ".join(summaries)
+        elif language == "ja":
+            headline = f"検証済みマッチリキャップ: {scoreline}"
+            summary = "記録された合成イベントで重要な瞬間は検出されませんでした。"
+            if insights:
+                summaries = [f"検証済みの重要な瞬間: {item.headline}。" for item in insights]
+                summary = " ".join(summaries)
+        else:
+            headline = f"Verified recap: {scoreline}"
+            summary = "No significant moments were detected in the recorded synthetic events."
+            if insights:
+                summaries = [item.audience_variants[audience].summary for item in insights]
+                summary = " ".join(summaries)
+        return {
+            "match_id": match_id,
+            "audience": audience,
+            "language": language,
+            "headline": headline,
+            "summary": summary,
+            "insight_ids": [item.insight_id for item in insights],
+            "evidence_event_ids": [event_id for item in insights for event_id in item.source_event_ids],
+            "synthetic": session.synthetic,
+            "milestones": milestones,
+            "turning_points": turning_points,
+            "control_vs_chaos": control_vs_chaos,
+        }
+
+    @staticmethod
+    def _spanish_recap_line(insight_type: str) -> str:
+        lines = {
+            "goal": "Un gol cambió el marcador y quedó verificado con eventos de apoyo.",
+            "pressure_shift": "La intensidad de presión cambió en la ventana de evidencia registrada.",
+            "shot_burst": "Una secuencia de tiros alcanzó el umbral configurado.",
+            "possession_swing": "El volumen de eventos cambió entre ventanas consecutivas.",
+            "red_card": "Una tarjeta roja cambió el estado del partido.",
+        }
+        return lines.get(insight_type, "Se registró un momento verificado en la evidencia disponible.")
+
     def _session(self, match_id: str) -> MatchSession:
         try:
             return self._sessions[match_id]
         except KeyError as error:
             raise MatchNotFoundError("match not found") from error
+
+    @staticmethod
+    def _update_player_summary(session: MatchSession, event: CanonicalEvent) -> None:
+        """Incrementally maintain viewer-facing player facts from canonical events."""
+        if event.player_id is None:
+            return
+        player = session.players.setdefault(event.player_id, {
+            "player_id": event.player_id,
+            "team_id": event.team_id,
+            "passes": 0,
+            "passes_completed": 0,
+            "shots": 0,
+            "goals": 0,
+            "high_regains": 0,
+            "pressure_events": 0,
+            "last_event_id": None,
+        })
+        player["last_event_id"] = event.event_id
+        if event.event_type.value == "pass":
+            player["passes"] += 1
+            player["passes_completed"] += int(event.attributes.get("completed", False))
+        elif event.event_type.value in {"shot", "goal"}:
+            player["shots"] += 1
+            player["goals"] += int(event.event_type.value == "goal")
+        elif event.event_type.value == "high_regain":
+            player["high_regains"] += 1
+        elif event.event_type.value == "pressure_event":
+            player["pressure_events"] += 1

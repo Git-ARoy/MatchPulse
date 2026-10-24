@@ -52,6 +52,11 @@ class TeamState(BaseModel):
     attacking_third_entries: int = 0
     penalty_box_entries: int = 0
     recoveries: int = 0
+    pass_distance_total_m: float = 0.0
+    pass_difficulty_total: float = 0.0
+    pass_difficulty_samples: int = 0
+    shot_speed_total_kph: float = 0.0
+    shot_speed_samples: int = 0
 
 
 class MatchState(BaseModel):

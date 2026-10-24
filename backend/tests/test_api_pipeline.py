@@ -210,3 +210,30 @@ def test_statsbomb_match_discovery_lists_importable_matches(client, tmp_path, mo
     assert response.status_code == 200
     assert response.json()["items"][0]["source_match_id"] == "77"
     assert response.json()["live_feed_available"] is False
+
+
+def test_synthetic_showcase_runs_the_real_pipeline_and_exposes_a_recap(client):
+    response = client.post("/api/v1/demo/scenarios/momentum-surge")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["synthetic"] is True
+    assert body["accepted_count"] == 10
+    assert body["published_insight_ids"]
+
+    state = client.get("/api/v1/matches/synthetic_ridge_harbor/state").json()
+    assert state["synthetic"] is True
+    assert state["teams"]["ridge_united"]["goals"] == 1
+    assert state["team_metrics"]["ridge_united"]["average_pass_distance_m"] is not None
+    assert state["players"]
+
+    recap = client.get("/api/v1/matches/synthetic_ridge_harbor/recap?audience=broadcast&language=es")
+    assert recap.status_code == 200
+    assert recap.json()["synthetic"] is True
+    assert recap.json()["language"] == "es"
+
+
+def test_synthetic_scenario_catalog_is_explicitly_fictional(client):
+    response = client.get("/api/v1/demo/scenarios")
+    assert response.status_code == 200
+    assert response.json()["items"][0]["match_id"].startswith("synthetic_")
+    assert "No real Premier League" in response.json()["data_policy"]

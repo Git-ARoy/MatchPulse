@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 from app.domain.events import CanonicalEvent
 from app.adapters.statsbomb_open_data import StatsBombDataError, StatsBombOpenDataAdapter
 from app.dev.fixtures import FIXTURE_NAMES, build_fixture
+from app.dev.synthetic_scenarios import build_scenario, list_scenarios
 from app.schemas.api import (
     BatchError,
     BatchRequest,
@@ -24,9 +25,13 @@ from app.schemas.api import (
     FixtureResponse,
     IngestEventResponse,
     InsightsResponse,
+    MatchRecapResponse,
     StatsBombMatchesResponse,
     StatsBombMatchResponse,
     StatsBombImportResponse,
+    SyntheticScenarioListResponse,
+    SyntheticScenarioResponse,
+    SyntheticScenarioSummary,
 )
 from app.services.match_service import (
     EventConflictError,
@@ -98,6 +103,41 @@ def liveness() -> dict[str, str]:
 @app.get("/api/v1/health/readiness")
 def readiness() -> dict[str, str]:
     return {"status": "ready"}
+
+
+@app.get("/api/v1/demo/scenarios", response_model=SyntheticScenarioListResponse)
+def list_synthetic_scenarios() -> SyntheticScenarioListResponse:
+    """Return the fictional, football-realistic sequences used by the demo."""
+    return SyntheticScenarioListResponse(items=[SyntheticScenarioSummary(**item.__dict__) for item in list_scenarios()])
+
+
+@app.post("/api/v1/demo/scenarios/{scenario_id}", response_model=SyntheticScenarioResponse, responses={404: {"model": ErrorResponse}, 409: {"model": ErrorResponse}})
+async def load_synthetic_scenario(scenario_id: str, request: Request) -> SyntheticScenarioResponse | JSONResponse:
+    """Ingest a safe synthetic showcase scenario through the production pipeline."""
+    scenario_lookup = {item.scenario_id: item for item in list_scenarios()}
+    scenario = scenario_lookup.get(scenario_id)
+    if scenario is None:
+        return error_response(request, 404, "SCENARIO_NOT_FOUND", "Unknown synthetic scenario.")
+    if service.has_events(scenario.match_id):
+        return error_response(request, 409, "SCENARIO_ALREADY_LOADED", "This synthetic scenario is already loaded in the current process.")
+    published_ids: list[str] = []
+    run_ids: list[str] = []
+    try:
+        events = build_scenario(scenario_id)
+        for event in events:
+            outcome = await asyncio.to_thread(service.ingest, event)
+            await publish_ingestion(event.match_id, event, outcome)
+            published_ids.extend(item.insight_id for item in outcome.published_insights)
+            run_ids.extend(outcome.analysis_run_ids)
+    except (EventConflictError, EventOrderError) as error:
+        return error_response(request, 409, "SCENARIO_INGESTION_FAILED", str(error))
+    return SyntheticScenarioResponse(
+        fixture=scenario_id,
+        match_id=scenario.match_id,
+        accepted_count=len(events),
+        published_insight_ids=published_ids,
+        analysis_run_ids=run_ids,
+    )
 
 
 @app.post("/api/v1/import/statsbomb/{source_match_id}", response_model=StatsBombImportResponse)
@@ -317,6 +357,17 @@ def list_insights(match_id: str, request: Request, limit: int = 20, after: str |
     except (MatchNotFoundError, InsightNotFoundError) as error:
         return error_response(request, 404, "NOT_FOUND", str(error))
     return InsightsResponse(match_id=match_id, items=items, next_cursor=next_cursor)
+
+
+@app.get("/api/v1/matches/{match_id}/recap", response_model=MatchRecapResponse, responses={404: {"model": ErrorResponse}, 422: {"model": ErrorResponse}})
+def get_match_recap(match_id: str, request: Request, audience: str = "fan", language: str = "en") -> MatchRecapResponse | JSONResponse:
+    """Render a verified, audience-specific recap with no ungrounded claims."""
+    try:
+        return MatchRecapResponse(**service.build_recap(match_id, audience, language))
+    except MatchNotFoundError as error:
+        return error_response(request, 404, "MATCH_NOT_FOUND", str(error))
+    except ValueError as error:
+        return error_response(request, 422, "INVALID_RECAP_PREFERENCE", str(error))
 
 
 @app.get("/api/v1/insights/{insight_id}", responses={404: {"model": ErrorResponse}})

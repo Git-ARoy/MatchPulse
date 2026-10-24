@@ -68,6 +68,20 @@ class InsightsResponse(BaseModel):
     next_cursor: str | None = None
 
 
+class MatchRecapResponse(BaseModel):
+    match_id: str
+    audience: str
+    language: str
+    headline: str
+    summary: str
+    insight_ids: list[str] = Field(default_factory=list)
+    evidence_event_ids: list[str] = Field(default_factory=list)
+    synthetic: bool
+    milestones: list[str] = Field(default_factory=list)
+    turning_points: list[str] = Field(default_factory=list)
+    control_vs_chaos: dict[str, Any] = Field(default_factory=dict)
+
+
 class EventsResponse(BaseModel):
     match_id: str
     items: list[CanonicalEvent]
@@ -80,6 +94,28 @@ class FixtureResponse(BaseModel):
     accepted_count: int
     published_insight_ids: list[str] = Field(default_factory=list)
     analysis_run_ids: list[str] = Field(default_factory=list)
+
+
+class SyntheticScenarioSummary(BaseModel):
+    scenario_id: str
+    title: str
+    description: str
+    match_id: str
+    home_team_id: str
+    away_team_id: str
+    home_team_name: str
+    away_team_name: str
+
+
+class SyntheticScenarioListResponse(BaseModel):
+    items: list[SyntheticScenarioSummary]
+    data_policy: str = "Synthetic fictional events only. No real Premier League match data is used."
+
+
+class SyntheticScenarioResponse(FixtureResponse):
+    synthetic: bool = True
+    live_feed_available: bool = True
+    data_policy: str = "Synthetic fictional events only. No real Premier League match data is used."
 
 
 class StatsBombImportResponse(BaseModel):
