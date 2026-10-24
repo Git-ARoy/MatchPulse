@@ -82,6 +82,19 @@ class FixtureResponse(BaseModel):
     analysis_run_ids: list[str] = Field(default_factory=list)
 
 
+class StatsBombImportResponse(BaseModel):
+    source_match_id: str
+    match_id: str
+    data_source: str
+    historical: bool = True
+    live_feed_available: bool = False
+    accepted_count: int
+    duplicate_count: int = 0
+    rejected_count: int = 0
+    published_insight_ids: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
+
+
 class EvidenceResponse(BaseModel):
     evidence_id: str
     insight_id: str

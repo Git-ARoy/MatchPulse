@@ -67,6 +67,7 @@ have been ingested, it deliberately renders an empty "Awaiting events" state.
 - `POST /api/v1/matches/{match_id}/events`
 - `POST /api/v1/matches/{match_id}/events:batch`
 - `GET /api/v1/matches/{match_id}/state`
+- `POST /api/v1/import/statsbomb/{source_match_id}`
 - `GET /api/v1/matches/{match_id}/events`
 - `WS /api/v1/matches/{match_id}/live-stream`
 - `GET /api/v1/matches/{match_id}/insights`
@@ -83,6 +84,18 @@ different payload and out-of-order arrivals return `409`. Batch ingestion uses
 explicit partial acceptance: structurally valid events are processed in input
 order and business-rule rejections appear in `errors`; schema-invalid batches
 return `422` before processing.
+
+## Historical Hudl/StatsBomb Open Data
+
+MatchPulse includes a replaceable adapter for the [Hudl/StatsBomb Open Data repository](https://github.com/hudl/open-data). Clone that repository locally, set `STATSBOMB_OPEN_DATA_ROOT` to its checkout, then import a completed match:
+
+```bash
+git clone https://github.com/hudl/open-data.git /path/to/open-data
+export STATSBOMB_OPEN_DATA_ROOT=/path/to/open-data
+curl -X POST http://localhost:8000/api/v1/import/statsbomb/123
+```
+
+Imported events are normalized to `event-v1`, retain source IDs and metadata, and are sorted by match clock. The resulting match is marked `historical: true` and `live_feed_available: false`; the dashboard explicitly says live feed is unavailable. A future provider can publish the same canonical events without changing analytics or UI contracts.
 
 ## Known limits and next milestone
 

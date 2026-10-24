@@ -1,6 +1,7 @@
 """API-level tests for the synthetic, source-independent first vertical slice."""
 
 import pytest
+import json
 from fastapi.testclient import TestClient
 
 import app.main as main
@@ -170,3 +171,21 @@ def test_live_stream_pushes_committed_transition(client):
         assert update["type"] == "match.transition"
         assert update["event"]["event_id"] == "live_1"
         assert update["state"]["state_version"] == 1
+
+
+def test_statsbomb_import_marks_completed_match_as_not_live(client, tmp_path, monkeypatch):
+    events_dir = tmp_path / "data" / "events"
+    events_dir.mkdir(parents=True)
+    (events_dir / "77.json").write_text(json.dumps([{
+        "id": "sb-1", "minute": 2, "second": 3,
+        "type": {"name": "Pass"}, "team": {"id": 1}, "player": {"id": 9},
+        "location": [72, 40], "pass": {},
+    }]))
+    monkeypatch.setenv("STATSBOMB_OPEN_DATA_ROOT", str(tmp_path))
+    response = client.post("/api/v1/import/statsbomb/77")
+    assert response.status_code == 200
+    assert response.json()["historical"] is True
+    state = client.get("/api/v1/matches/statsbomb_77/state").json()
+    assert state["data_source"] == "statsbomb-open-data"
+    assert state["live_feed_available"] is False
+    assert state["historical"] is True

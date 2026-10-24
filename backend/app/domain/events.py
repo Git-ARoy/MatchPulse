@@ -44,6 +44,7 @@ class EventType(str, Enum):
     half_time = "half_time"
     full_time = "full_time"
     pressure_event = "pressure_event"
+    other = "other"
 
 
 class Zone(str, Enum):

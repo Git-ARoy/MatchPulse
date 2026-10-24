@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.domain.events import CanonicalEvent
+from app.adapters.statsbomb_open_data import StatsBombDataError, StatsBombOpenDataAdapter
 from app.dev.fixtures import FIXTURE_NAMES, build_fixture
 from app.schemas.api import (
     BatchError,
@@ -23,6 +24,7 @@ from app.schemas.api import (
     FixtureResponse,
     IngestEventResponse,
     InsightsResponse,
+    StatsBombImportResponse,
 )
 from app.services.match_service import (
     EventConflictError,
@@ -94,6 +96,42 @@ def liveness() -> dict[str, str]:
 @app.get("/api/v1/health/readiness")
 def readiness() -> dict[str, str]:
     return {"status": "ready"}
+
+
+@app.post("/api/v1/import/statsbomb/{source_match_id}", response_model=StatsBombImportResponse)
+async def import_statsbomb_match(source_match_id: str, request: Request) -> StatsBombImportResponse | JSONResponse:
+    """Import one completed Hudl/StatsBomb Open Data match into the ledger.
+
+    ``STATSBOMB_OPEN_DATA_ROOT`` must point at a checked-out copy of the
+    repository. The endpoint never treats these historical events as live.
+    """
+    try:
+        summary, events = await asyncio.to_thread(StatsBombOpenDataAdapter().load_match, source_match_id)
+    except StatsBombDataError as error:
+        return error_response(request, 422, "STATSBOMB_IMPORT_ERROR", str(error))
+    match_id = summary.match_id if summary else f"statsbomb_{source_match_id}"
+    accepted = duplicates = rejected = 0
+    insight_ids: list[str] = []
+    errors: list[str] = []
+    for event in events:
+        try:
+            outcome = await asyncio.to_thread(service.ingest, event)
+            accepted += int(outcome.accepted)
+            duplicates += int(outcome.duplicate)
+            insight_ids.extend(item.insight_id for item in outcome.published_insights)
+        except (EventConflictError, EventOrderError) as error:
+            rejected += 1
+            errors.append(f"{event.event_id}: {error}")
+    return StatsBombImportResponse(
+        source_match_id=source_match_id,
+        match_id=match_id,
+        data_source="statsbomb-open-data",
+        accepted_count=accepted,
+        duplicate_count=duplicates,
+        rejected_count=rejected,
+        published_insight_ids=insight_ids,
+        errors=errors[:20],
+    )
 
 
 async def publish_ingestion(match_id: str, event: CanonicalEvent, outcome: object) -> None:

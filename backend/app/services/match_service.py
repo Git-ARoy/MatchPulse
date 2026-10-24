@@ -58,6 +58,9 @@ class MatchSession:
     evidence: dict[str, EvidencePackage] = field(default_factory=dict)
     analysis_runs: dict[str, AnalysisRun] = field(default_factory=dict)
     detector: MomentDetector = field(init=False)
+    data_source: str = "canonical-api"
+    live_feed_available: bool = True
+    historical: bool = False
 
     def __post_init__(self) -> None:
         self.tracker = MatchTracker(self.match_id)
@@ -82,6 +85,10 @@ class MatchService:
             raise EventConflictError("event_id is already associated with another match")
 
         session = self._sessions.setdefault(event.match_id, MatchSession(event.match_id))
+        if event.source is not None:
+            session.data_source = event.source.adapter
+            session.historical = event.source.adapter == "statsbomb-open-data"
+            session.live_feed_available = not session.historical
         normalized = session.tracker.normalize_event(event)
         existing = session.events_by_id.get(normalized.event_id)
         if existing is not None:
@@ -166,6 +173,9 @@ class MatchService:
                 "availability": "available" if current else "insufficient_events",
             }
         payload["metrics"] = metrics
+        payload["data_source"] = session.data_source
+        payload["historical"] = session.historical
+        payload["live_feed_available"] = session.live_feed_available
         return payload
 
     def list_insights(self, match_id: str, limit: int, after: str | None) -> tuple[list[Insight], str | None]:
