@@ -1,11 +1,10 @@
 # MatchPulse
 
 MatchPulse is an evidence-first football intelligence platform for synthetic,
-football-realistic events. This repository currently contains the first
-working backend vertical slice: canonical event ingestion, deterministic match
-state and pressure detection, evidence validation, and API retrieval of a
-verified insight. It does not use a provider feed, real Premier League data,
-or an LLM for statistics.
+football-realistic events. The product path in this repository ingests
+fictional events, calculates deterministic match state, validates evidence,
+and renders audience-specific verified insights. It does not redistribute real
+Premier League match data or use an LLM as the source of statistics.
 
 ## What is implemented
 
@@ -19,6 +18,9 @@ or an LLM for statistics.
   and Tactical Analyst stages followed by Narrative Producer and Evidence
   Auditor stages. It persists inspectable run/trace artifacts. Local role
   implementations are deterministic until Foundry credentials are configured.
+- A connected Next.js studio console with a synthetic scenario launcher, event
+  ticker, evidence-linked insight timeline, fan/analyst/broadcast modes,
+  player focus, English/Spanish recaps, and a tactical event radar.
 
 ### Pressure index (`pressure-v1`)
 
@@ -58,12 +60,15 @@ npm install
 npm run dev
 ```
 
-The console calls the live backend APIs for a match ID. Until canonical events
-have been ingested, it deliberately renders an empty "Awaiting events" state.
+The console calls the live backend APIs. Select **Momentum surge** to ingest a
+small fictional sequence through the same path used by external events; select
+**Quiet period** to see deliberate non-publication when no threshold is met.
 
 ## API v1
 
 - `GET /api/v1/health`
+- `GET /api/v1/demo/scenarios`
+- `POST /api/v1/demo/scenarios/{scenario_id}`
 - `POST /api/v1/matches/{match_id}/events`
 - `POST /api/v1/matches/{match_id}/events:batch`
 - `GET /api/v1/matches/{match_id}/state`
@@ -71,6 +76,7 @@ have been ingested, it deliberately renders an empty "Awaiting events" state.
 - `GET /api/v1/matches/{match_id}/events`
 - `WS /api/v1/matches/{match_id}/live-stream`
 - `GET /api/v1/matches/{match_id}/insights`
+- `GET /api/v1/matches/{match_id}/recap?audience=fan&language=en`
 - `GET /api/v1/insights/{insight_id}`
 - `GET /api/v1/insights/{insight_id}/evidence`
 - `GET /api/v1/analysis-runs/{run_id}`
@@ -85,18 +91,23 @@ explicit partial acceptance: structurally valid events are processed in input
 order and business-rule rejections appear in `errors`; schema-invalid batches
 return `422` before processing.
 
-## Historical Hudl/StatsBomb Open Data
+## Synthetic demo data policy
 
-MatchPulse includes a replaceable adapter for the [Hudl/StatsBomb Open Data repository](https://github.com/hudl/open-data). Clone that repository locally, set `STATSBOMB_OPEN_DATA_ROOT` to its checkout, then import a completed match:
+The product demo uses only authored fictional teams, players, events, and
+metrics. It is deliberately small, inspectable test data rather than a full
+match simulator. Use the public scenario API to exercise the five-stage
+hackathon path:
 
 ```bash
-git clone https://github.com/hudl/open-data.git /path/to/open-data
-export STATSBOMB_OPEN_DATA_ROOT=/path/to/open-data
-curl http://localhost:8000/api/v1/import/statsbomb/matches
-curl -X POST http://localhost:8000/api/v1/import/statsbomb/<source_match_id>
+curl http://localhost:8000/api/v1/demo/scenarios
+curl -X POST http://localhost:8000/api/v1/demo/scenarios/momentum-surge
+curl http://localhost:8000/api/v1/matches/synthetic_ridge_harbor/state
+curl http://localhost:8000/api/v1/matches/synthetic_ridge_harbor/insights
 ```
 
-Imported events are normalized to `event-v1`, retain source IDs and metadata, and are sorted by match clock. The resulting match is marked `historical: true` and `live_feed_available: false`; the dashboard explicitly says live feed is unavailable. A future provider can publish the same canonical events without changing analytics or UI contracts.
+The source adapter boundary remains provider-independent for future licensed
+or permitted integrations. Historical-data adapters are not part of the
+hackathon demo path and must not be used to supply the submission experience.
 
 ## Known limits and next milestone
 
@@ -121,9 +132,11 @@ credentials provider) `AUTH_CREDENTIALS_EMAIL`/`AUTH_CREDENTIALS_PASSWORD` in
 account; user sign-up requires a durable identity store, which is not included.
 
 Kubernetes manifests live in `k8s/`, with a companion initial Helm chart in
-`helm/matchpulse/`. They require a real configured cluster to validate against
-its API schema and deploy. GitHub Actions expects Azure/GitHub registry secrets
-before it can publish images or roll AKS workloads.
+`helm/matchpulse/`. GitHub Actions always verifies and publishes images on a
+main-branch push. It rolls AKS workloads only when repository variable
+`DEPLOY_TO_AKS=true` and the `AZURE_CREDENTIALS`, `AZURE_RESOURCE_GROUP`, and
+`AKS_CLUSTER_NAME` secrets are configured. This keeps ordinary source pushes
+from failing because a deployment environment has not been provisioned.
 
 The repository's planning context is retained in `matchpulse_context/`; the
 five documents explicitly leave exact data-provider choice, agent package

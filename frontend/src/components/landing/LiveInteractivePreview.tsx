@@ -1,145 +1,39 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import { ArrowRightRegular, PlayRegular, ShieldCheckmarkRegular } from "@fluentui/react-icons";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+
+type Scenario = { scenario_id: string; title: string; description: string; match_id: string };
+type Insight = { headline: string; summary: string; source_event_ids: string[]; validation?: { status: string } };
+const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export function LiveInteractivePreview() {
-  const [activeScenario, setActiveScenario] = useState<"pressure" | "goal" | "quiet">("pressure");
+  const reduceMotion = useReducedMotion();
+  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [selected, setSelected] = useState("momentum-surge");
+  const [insight, setInsight] = useState<Insight | null>(null);
+  const [message, setMessage] = useState("Choose a fictional sequence to run it through the evidence pipeline.");
+  const [pending, setPending] = useState(false);
 
-  const scenarios = {
-    pressure: {
-      title: "Pressure Surge (+41.0 Δ)",
-      clock: "72:14",
-      score: "1 - 0",
-      headline: "Ridge United surge – pressure index spikes",
-      why: "Ridge United generated 8 consecutive attacking-third entries and 3 high regains in 300 seconds.",
-      metric: "72.0 / 100 Pressure Index",
-      badge: "VERIFIED BY AUDITOR",
-      color: "var(--pitch-emerald)",
-    },
-    goal: {
-      title: "Goal Sequence",
-      clock: "84:30",
-      score: "2 - 0",
-      headline: "GOAL! Ridge United find the net",
-      why: "The scoreline changed following a penalty box penetration at minute 84.",
-      metric: "Score Updated: 2 - 0",
-      badge: "VERIFIED SCORELINE",
-      color: "var(--pl-purple)",
-    },
-    quiet: {
-      title: "Quiet Midfield Play",
-      clock: "34:10",
-      score: "0 - 0",
-      headline: "No significant moment detected",
-      why: "Routine passes in the middle third remain below threshold. The system deliberately suppresses output.",
-      metric: "18.0 / 100 Stable Intensity",
-      badge: "RESTRAINT MAINTAINED",
-      color: "var(--ink-muted)",
-    },
+  useEffect(() => { void fetch(`${api}/api/v1/demo/scenarios`).then(response => response.ok ? response.json() : Promise.reject()).then(body => setScenarios(body.items)).catch(() => setMessage("Start the API to run the synthetic showcase.")); }, []);
+
+  const run = async () => {
+    const scenario = scenarios.find(item => item.scenario_id === selected);
+    if (!scenario) return;
+    setPending(true); setInsight(null);
+    try {
+      const loaded = await fetch(`${api}/api/v1/demo/scenarios/${selected}`, { method: "POST" });
+      if (!loaded.ok && loaded.status !== 409) throw new Error("The synthetic sequence could not be ingested.");
+      const insights = await fetch(`${api}/api/v1/matches/${scenario.match_id}/insights?limit=5`);
+      if (!insights.ok) throw new Error("The evidence service did not return an insight.");
+      const items = (await insights.json()).items as Insight[];
+      setInsight(items.at(-1) ?? null);
+      setMessage(items.length ? "The pipeline produced a verified, evidence-linked story." : "The pipeline stayed quiet because the sequence did not cross a story threshold.");
+    } catch (error) { setMessage(error instanceof Error ? error.message : "Unable to run the showcase."); }
+    finally { setPending(false); }
   };
 
-  const current = scenarios[activeScenario];
-
-  return (
-    <section style={{ maxWidth: "1380px", margin: "80px auto", padding: "0 24px" }}>
-      <div style={{ background: "linear-gradient(135deg, rgba(56,0,60,0.03) 0%, rgba(5,150,105,0.03) 100%)", border: "1px solid var(--line)", borderRadius: "24px", padding: "48px 36px", boxShadow: "var(--shadow-sm)" }}>
-        <div style={{ textAlign: "center", marginBottom: "36px" }}>
-          <div className="section-eyebrow">Interactive Live Simulator</div>
-          <h2 style={{ fontSize: "36px", fontWeight: 900, color: "var(--pl-purple)", letterSpacing: "-0.04em" }}>
-            Experience the Intelligence Pipeline Live
-          </h2>
-          <p style={{ color: "var(--ink-secondary)", fontSize: "16px", marginTop: "8px" }}>
-            Click a scenario below to see how MatchPulse detects, audits, and presents moments in real time.
-          </p>
-
-          <div style={{ display: "inline-flex", background: "var(--surface-subtle)", padding: "4px", borderRadius: "12px", marginTop: "24px", gap: "6px" }}>
-            {(["pressure", "goal", "quiet"] as const).map((key) => (
-              <button
-                key={key}
-                onClick={() => setActiveScenario(key)}
-                style={{
-                  padding: "10px 20px",
-                  fontSize: "14px",
-                  fontWeight: 800,
-                  border: "none",
-                  borderRadius: "9px",
-                  cursor: "pointer",
-                  background: activeScenario === key ? "#ffffff" : "transparent",
-                  color: activeScenario === key ? "var(--pl-purple)" : "var(--ink-secondary)",
-                  boxShadow: activeScenario === key ? "var(--shadow-sm)" : "none",
-                  transition: "all 0.15s ease",
-                }}
-              >
-                {scenarios[key].title}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Live Simulation Box */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeScenario}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-            style={{
-              background: "#ffffff",
-              border: "1px solid var(--line)",
-              borderRadius: "18px",
-              padding: "32px",
-              boxShadow: "var(--shadow-lg)",
-              maxWidth: "960px",
-              margin: "0 auto",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", paddingBottom: "20px", borderBottom: "1px solid var(--line)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <span className="live-pill">
-                  <span className="live-blip" />
-                  <span>SIMULATED FEED</span>
-                </span>
-                <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--ink-secondary)" }}>
-                  Ridge United vs Harbor FC
-                </span>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                <span className="match-timer">⏱️ {current.clock}</span>
-                <span style={{ fontSize: "22px", fontWeight: 900, color: "var(--pl-purple)" }}>{current.score}</span>
-              </div>
-            </div>
-
-            <div style={{ marginTop: "24px", display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: "32px" }}>
-              <div>
-                <span style={{ fontSize: "11px", fontWeight: 800, color: current.color, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  {current.badge}
-                </span>
-                <h3 style={{ fontSize: "24px", fontWeight: 900, color: "var(--pl-purple)", marginTop: "6px", marginBottom: "12px", letterSpacing: "-0.03em" }}>
-                  {current.headline}
-                </h3>
-                <p style={{ fontSize: "15px", lineHeight: "1.6", color: "var(--ink-secondary)" }}>
-                  {current.why}
-                </p>
-              </div>
-
-              <div style={{ background: "var(--surface-subtle)", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase" }}>Deterministic Metric</div>
-                  <div style={{ fontSize: "20px", fontWeight: 900, color: "var(--pl-purple)", marginTop: "4px" }}>{current.metric}</div>
-                </div>
-
-                <Link href="/dashboard" className="btn-primary" style={{ marginTop: "20px", width: "100%", textAlign: "center" }}>
-                  View In Full Match Console →
-                </Link>
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-    </section>
-  );
+  return <section className="studio-preview"><div className="studio-preview-intro"><p className="section-kicker">Try the pipeline</p><h2>Put the evidence engine on air.</h2><p>Run a short fictional sequence. The result is fetched from the same APIs used by the live console.</p><div className="scenario-buttons">{scenarios.map(scenario => <button key={scenario.scenario_id} className={selected === scenario.scenario_id ? "active" : ""} onClick={() => setSelected(scenario.scenario_id)}>{scenario.title}</button>)}</div><button className="preview-run" disabled={pending || !scenarios.length} onClick={() => void run()}><PlayRegular />{pending ? "Running sequence" : "Run synthetic sequence"}</button></div><div className="studio-preview-output"><AnimatePresence mode="wait">{insight ? <motion.article key={insight.headline} initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={reduceMotion ? undefined : { opacity: 0, y: -10 }} className="preview-insight"><div><ShieldCheckmarkRegular /><span>{insight.validation?.status ?? "verified"}</span></div><h3>{insight.headline}</h3><p>{insight.summary}</p><small>{insight.source_event_ids.length} source events locked to this claim</small></motion.article> : <motion.div key="empty" initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} className="preview-empty"><ShieldCheckmarkRegular /><p>{message}</p></motion.div>}</AnimatePresence><Link href="/dashboard" className="preview-console-link">Open full studio <ArrowRightRegular /></Link></div></section>;
 }

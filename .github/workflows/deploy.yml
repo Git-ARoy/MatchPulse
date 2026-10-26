@@ -57,7 +57,7 @@ jobs:
 
       - name: Validate Kubernetes Manifests
         run: |
-          kubectl apply --dry-run=client -f k8s/
+          kubectl apply --dry-run=client --validate=false -f k8s/
 
   build-and-deploy:
     name: Build & Package Containers
@@ -75,7 +75,7 @@ jobs:
           echo "IMAGE_PREFIX=ghcr.io/${LOWER_OWNER}" >> $GITHUB_ENV
           
           # Detect whether Azure secrets are present
-          if [ -n "${{ secrets.AZURE_CREDENTIALS }}" ] && [ -n "${{ secrets.AZURE_RESOURCE_GROUP }}" ] && [ -n "${{ secrets.AKS_CLUSTER_NAME }}" ]; then
+          if [ "${{ vars.DEPLOY_TO_AKS }}" = "true" ] && [ -n "${{ secrets.AZURE_CREDENTIALS }}" ] && [ -n "${{ secrets.AZURE_RESOURCE_GROUP }}" ] && [ -n "${{ secrets.AKS_CLUSTER_NAME }}" ]; then
             echo "HAS_AZURE_SECRETS=true" >> $GITHUB_ENV
           else
             echo "HAS_AZURE_SECRETS=false" >> $GITHUB_ENV

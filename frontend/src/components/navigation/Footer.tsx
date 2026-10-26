@@ -20,7 +20,7 @@ export function Footer() {
         <div style={{ display: "flex", gap: "24px", fontSize: "13px", fontWeight: 600 }}>
           <Link href="/" style={{ color: "var(--ink-secondary)", textDecoration: "none" }}>Overview</Link>
           <Link href="/dashboard" style={{ color: "var(--ink-secondary)", textDecoration: "none" }}>Dashboard</Link>
-          <Link href="/match/sim_match_001/analysis" style={{ color: "var(--ink-secondary)", textDecoration: "none" }}>Tactical Radar</Link>
+          <Link href="/match/synthetic_ridge_harbor/analysis" style={{ color: "var(--ink-secondary)", textDecoration: "none" }}>Tactical Radar</Link>
           <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" style={{ color: "var(--pitch-emerald)", textDecoration: "none" }}>API Docs ↗</a>
         </div>
       </div>

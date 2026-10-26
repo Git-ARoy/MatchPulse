@@ -16,6 +16,7 @@ spec:
       containers:
         - name: web
           image: ghcr.io/git-aroy/matchpulse-web:latest
+          imagePullPolicy: Always
           ports: [{ containerPort: 3000, name: http }]
           securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: ["ALL"] } }
           resources: { requests: { cpu: 150m, memory: 256Mi }, limits: { cpu: 750m, memory: 768Mi } }

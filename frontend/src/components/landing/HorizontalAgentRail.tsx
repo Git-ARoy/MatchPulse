@@ -1,85 +1,17 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { ArrowTrendingRegular, DataBarVerticalRegular, DrawTextRegular, PersonFeedbackRegular, ShieldCheckmarkRegular } from "@fluentui/react-icons";
+import { motion, useReducedMotion } from "framer-motion";
 
-const agents = [
-  {
-    num: "01",
-    role: "Match Analyst",
-    icon: "📊",
-    headline: "Statistical Momentum & Shift Detection",
-    description: "Evaluates rolling 5-minute event windows and computes deterministic deltas. Never estimates numbers with an LLM.",
-    spec: "Pressure-v1 composite index • Attacking-third metrics",
-    color: "var(--accent-blue)",
-  },
-  {
-    num: "02",
-    role: "Tactical Analyst",
-    icon: "🧭",
-    headline: "Territorial Patterns & Transition Hypotheses",
-    description: "Investigates pitch territory, possession sequence lengths, and transition phases. Separates observed facts from interpretations.",
-    spec: "Zone classification • High-regain tracking • Ball retention",
-    color: "var(--pitch-emerald)",
-  },
-  {
-    num: "03",
-    role: "Narrative Producer",
-    icon: "🎙️",
-    headline: "Multi-Audience Story Adaptation",
-    description: "Derives distinct Fan, Analyst, and Broadcast narratives from the exact same locked evidence snapshot without introducing new claims.",
-    spec: "Fan emotion • Analyst metrics • Broadcast overlay format",
-    color: "var(--pl-purple)",
-  },
-  {
-    num: "04",
-    role: "Evidence Auditor",
-    icon: "🛡️",
-    headline: "Deterministic Factual Validation & Repair",
-    description: "Checks cited event IDs, verifies exact metric deltas, and validates time boundaries. Rejects any ungrounded hallucination.",
-    spec: "1-turn bounded repair • Citation check • Ledger provenance",
-    color: "var(--accent-crimson)",
-  },
+const stages = [
+  { title: "Ingest", copy: "Validate fictional events, preserve order, and reject duplicate IDs.", icon: ArrowTrendingRegular },
+  { title: "Interpret", copy: "Calculate match state, momentum, pressure, pass quality, and player facts.", icon: DataBarVerticalRegular },
+  { title: "Explain", copy: "Specialist agents connect material changes to a bounded evidence window.", icon: DrawTextRegular },
+  { title: "Render", copy: "Produce compact verified outputs for the console and broadcast overlays.", icon: ShieldCheckmarkRegular },
+  { title: "Personalize", copy: "Adapt the same facts for fans, analysts, broadcasters, languages, and player focus.", icon: PersonFeedbackRegular },
 ];
 
 export function HorizontalAgentRail() {
-  return (
-    <section className="showcase-pinned-wrapper">
-      <div className="section-header">
-        <div className="section-eyebrow">Multi-Agent Orchestration Architecture</div>
-        <h2 className="section-title">Four Specialized Roles. One Evidence Ledger.</h2>
-        <p style={{ color: "var(--ink-secondary)", fontSize: "16px", marginTop: "12px", maxWidth: "600px" }}>
-          Built using the Microsoft Agent Framework. Each agent carries a strict input/output contract to ensure tactical narratives never fabricate facts.
-        </p>
-      </div>
-
-      <div className="horizontal-scroll-container">
-        {agents.map((agent, index) => (
-          <motion.div
-            key={agent.role}
-            className="agent-showcase-card"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: index * 0.12, duration: 0.5 }}
-          >
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span className="agent-num-tag">ROLE {agent.num}</span>
-                <span style={{ fontSize: "24px" }}>{agent.icon}</span>
-              </div>
-              <h3 className="agent-role-title">{agent.role}</h3>
-              <div style={{ fontSize: "14px", fontWeight: 700, color: agent.color, marginBottom: "8px" }}>
-                {agent.headline}
-              </div>
-              <p className="agent-role-desc">{agent.description}</p>
-            </div>
-
-            <div className="agent-spec-chip" style={{ borderLeftColor: agent.color }}>
-              {agent.spec}
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </section>
-  );
+  const reduceMotion = useReducedMotion();
+  return <section id="pipeline" className="pipeline-section"><div className="pipeline-intro"><p className="section-kicker">One evidence ledger</p><h2>Five stages. One accountable story.</h2><p>MatchPulse keeps numerical claims deterministic, gives agents a bounded role, and leaves an inspectable trail from event to screen.</p></div><div className="pipeline-track">{stages.map((stage, index) => { const Icon = stage.icon; return <motion.article key={stage.title} initial={reduceMotion ? false : { opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.4 }} transition={{ duration: 0.5, delay: index * 0.06 }} className="pipeline-stage"><span className="pipeline-index">{String(index + 1).padStart(2, "0")}</span><Icon /><h3>{stage.title}</h3><p>{stage.copy}</p></motion.article>; })}</div></section>;
 }
