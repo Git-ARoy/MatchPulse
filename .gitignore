@@ -42,3 +42,6 @@ coverage/
 
 # Build
 *.tsbuildinfo
+
+# Docs
+matchpulse_context/
