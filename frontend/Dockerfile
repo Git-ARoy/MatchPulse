@@ -6,6 +6,8 @@ RUN npm ci
 FROM node:22-alpine AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV AUTH_SECRET="production-auth-secret-min-32-chars-long"
+ENV NEXT_PUBLIC_API_URL="http://localhost:8000"
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

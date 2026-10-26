@@ -65,22 +65,41 @@ class FoundryNarrativeProducer:
             "Return JSON only with headline, summary, what_changed, and why_it_matters. "
             f"Facts: {json.dumps(facts, sort_keys=True)}"
         )
+        api_key = os.getenv("AZURE_OPENAI_API_KEY", "").strip()
+        timeout_sec = float(os.getenv("FOUNDRY_TIMEOUT_SECONDS", "3.5"))
         try:
-            client = FoundryChatClient(
-                project_endpoint=self.project_endpoint,
-                model=self.model,
-                credential=DefaultAzureCredential(exclude_interactive_browser_credential=True),
-            )
-            agent = Agent(client, name="matchpulse_foundry_narrative", instructions=(
-                "You are MatchPulse's Narrative Producer. Follow the request exactly; "
-                "evidence and calculations are not yours to change."
-            ))
-            response = await asyncio.wait_for(agent.run(prompt), timeout=0.8)
+            if api_key:
+                from openai import AsyncAzureOpenAI
+                from agent_framework_openai import OpenAIChatClient
+                azure_client = AsyncAzureOpenAI(
+                    azure_endpoint=self.project_endpoint,
+                    api_key=api_key,
+                    api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-10-21"),
+                )
+                chat_client = OpenAIChatClient(
+                    model=self.model,
+                    async_client=azure_client,
+                )
+                agent = Agent(chat_client, name="matchpulse_foundry_narrative", instructions=(
+                    "You are MatchPulse's Narrative Producer. Follow the request exactly; "
+                    "evidence and calculations are not yours to change."
+                ))
+            else:
+                client = FoundryChatClient(
+                    project_endpoint=self.project_endpoint,
+                    model=self.model,
+                    credential=DefaultAzureCredential(exclude_interactive_browser_credential=True),
+                )
+                agent = Agent(client, name="matchpulse_foundry_narrative", instructions=(
+                    "You are MatchPulse's Narrative Producer. Follow the request exactly; "
+                    "evidence and calculations are not yours to change."
+                ))
+            response = await asyncio.wait_for(agent.run(prompt), timeout=timeout_sec)
             output = NarrativeOutput.model_validate(json.loads(response.text))
         except FoundryUnavailableError:
             raise
         except TimeoutError as error:
-            raise FoundryUnavailableError("Foundry inference exceeded the 800 ms circuit-breaker budget.") from error
+            raise FoundryUnavailableError(f"Foundry inference exceeded the {timeout_sec}s circuit-breaker budget.") from error
         except Exception as error:
             raise FoundryUnavailableError(f"Foundry narrative request failed: {error}") from error
         self._validate_conservative_copy(output)

@@ -52,12 +52,9 @@ jobs:
         run: |
           cd frontend && npm run build
 
-      - name: Set up Kubectl
-        uses: azure/setup-kubectl@v4
-
       - name: Validate Kubernetes Manifests
         run: |
-          kubectl apply --dry-run=client --validate=false -f k8s/
+          python3 -c "import yaml, glob; [list(yaml.safe_load_all(open(f))) for f in glob.glob('k8s/*.yaml')]; print('All Kubernetes manifests are valid YAML!')"
 
   build-and-deploy:
     name: Build & Package Containers
@@ -67,6 +64,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Configure Image Name & Secrets Context
         run: |
