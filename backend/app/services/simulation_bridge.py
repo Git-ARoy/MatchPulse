@@ -14,8 +14,17 @@ import httpx
 
 from app.domain.events import CanonicalEvent
 from app.services.match_service import MatchService
-from simulator.engine.match_sim import MatchSimulation
-from simulator.engine.rosters import AVAILABLE_MATCHUPS
+
+try:
+    from simulator.engine.match_sim import MatchSimulation
+    from simulator.engine.rosters import AVAILABLE_MATCHUPS
+except ImportError:
+    try:
+        from app.simulator.engine.match_sim import MatchSimulation
+        from app.simulator.engine.rosters import AVAILABLE_MATCHUPS
+    except ImportError:
+        MatchSimulation = None  # type: ignore
+        AVAILABLE_MATCHUPS = []  # type: ignore
 
 logger = logging.getLogger("matchpulse.simulation_bridge")
 
@@ -30,7 +39,9 @@ class SimulationBridge:
         self._external_available: bool = False
         self._last_check_time: float = 0.0
 
-    def _get_or_create_local_sim(self, match_id: str = "synthetic_ridge_harbor", matchup_id: str = "synthetic_ridge_harbor") -> MatchSimulation:
+    def _get_or_create_local_sim(self, match_id: str = "synthetic_ridge_harbor", matchup_id: str = "synthetic_ridge_harbor") -> MatchSimulation | None:
+        if MatchSimulation is None:
+            return None
         if self._in_process_sim is None or self._in_process_sim.match_id != match_id:
             def on_event(ev: dict[str, Any]) -> None:
                 try:
@@ -61,6 +72,8 @@ class SimulationBridge:
         """In-process simulation tick loop (100ms interval = 10Hz)."""
         tick_interval = 0.1
         sim = self._get_or_create_local_sim()
+        if not sim:
+            return
         while True:
             try:
                 if not sim.is_paused:
@@ -85,6 +98,14 @@ class SimulationBridge:
                 pass
 
         sim = self._get_or_create_local_sim(match_id)
+        if not sim:
+            return {
+                "mode": "standby",
+                "connected": True,
+                "snapshot": {"match_id": match_id, "is_paused": True, "phase": "ready", "minute": 0, "second": 0, "event_counter": 0},
+                "recent_events": [],
+                "dispatcher": {"status": "standby", "target_api_url": "internal"},
+            }
         return {
             "mode": "in_process_engine",
             "connected": True,
