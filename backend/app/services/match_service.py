@@ -262,7 +262,7 @@ class MatchService:
         session = self._session(match_id)
         if audience not in {"fan", "analyst", "broadcast"}:
             raise ValueError("audience must be fan, analyst, or broadcast")
-        supported_languages = {"en", "es", "fr", "de", "ar", "ja"}
+        supported_languages = {"en", "es", "pt", "de", "fr", "it", "nl", "ar", "tr", "ja"}
         if language not in supported_languages:
             raise ValueError(f"language must be one of {', '.join(sorted(supported_languages))}")
         insights = session.insights[-3:]
@@ -294,6 +294,12 @@ class MatchService:
             if insights:
                 summaries = [self._spanish_recap_line(item.insight_type.value) for item in insights]
                 summary = " ".join(summaries)
+        elif language == "pt":
+            headline = f"Resumo verificado: {scoreline}"
+            summary = "Nenhum momento significativo detectado nos eventos sintéticos registrados."
+            if insights:
+                summaries = [f"Momento decisivo verificado: {item.headline}." for item in insights]
+                summary = " ".join(summaries)
         elif language == "fr":
             headline = f"Résumé vérifié: {scoreline}"
             summary = "Aucun moment significatif détecté dans les événements synthétiques enregistrés."
@@ -306,11 +312,29 @@ class MatchService:
             if insights:
                 summaries = [f"Verifizierter Moment: {item.headline}." for item in insights]
                 summary = " ".join(summaries)
+        elif language == "it":
+            headline = f"Riepilogo verificato: {scoreline}"
+            summary = "Nessun momento significativo rilevato negli eventi sintetici registrati."
+            if insights:
+                summaries = [f"Momento chiave verificato: {item.headline}." for item in insights]
+                summary = " ".join(summaries)
+        elif language == "nl":
+            headline = f"Geverifieerd wedstrijdoverzicht: {scoreline}"
+            summary = "Geen significante momenten gedetecteerd in de geregistreerde synthetische gebeurtenissen."
+            if insights:
+                summaries = [f"Geverifieerd sleutelmoment: {item.headline}." for item in insights]
+                summary = " ".join(summaries)
         elif language == "ar":
             headline = f"ملخص المباراة المعتمد: {scoreline}"
             summary = "لم يتم الكشف عن لحظات فارقة في أحداث المباراة المسجلة."
             if insights:
                 summaries = [f"لحظة معتمدة: {item.headline}." for item in insights]
+                summary = " ".join(summaries)
+        elif language == "tr":
+            headline = f"Doğrulanmış Maç Özeti: {scoreline}"
+            summary = "Kaydedilen sentetik olaylarda önemli bir an tespit edilmedi."
+            if insights:
+                summaries = [f"Doğrulanan önemli an: {item.headline}." for item in insights]
                 summary = " ".join(summaries)
         elif language == "ja":
             headline = f"検証済みマッチリキャップ: {scoreline}"

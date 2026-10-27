@@ -32,26 +32,26 @@ export function Navbar() {
     <header className="top-navbar">
       <div className="nav-container">
         <Link href="/" className="brand-link" aria-label="MatchPulse Home">
-          <span className="brand-mark">
+          <span className="brand-crest">
             <PulseRegular />
           </span>
-          <span>
-            <strong>MATCHPULSE</strong>
-            <small>Football intelligence studio</small>
+          <span className="brand-text">
+            <strong className="brand-title">MATCHPULSE</strong>
+            <small className="brand-sub">Football intelligence studio</small>
           </span>
         </Link>
 
         {/* Desktop Navigation Links */}
         <nav className="nav-links" aria-label="Primary navigation">
-          <Link href="/" className={pathname === "/" ? "active" : ""}>
+          <Link href="/" className={`nav-item ${pathname === "/" ? "active" : ""}`}>
             Overview
           </Link>
-          <Link href="/dashboard" className={pathname === "/dashboard" ? "active" : ""}>
+          <Link href="/dashboard" className={`nav-item ${pathname === "/dashboard" ? "active" : ""}`}>
             Live demo
           </Link>
           <Link
             href={`/match/${demoMatch}/analysis`}
-            className={pathname.includes("/analysis") ? "active" : ""}
+            className={`nav-item ${pathname.includes("/analysis") ? "active" : ""}`}
           >
             Tactical radar
           </Link>

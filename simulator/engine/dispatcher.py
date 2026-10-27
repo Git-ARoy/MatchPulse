@@ -35,7 +35,7 @@ class EventDispatcher:
         self.last_status: str = "idle"
         self.last_latency_ms: float = 0.0
         self.last_error: str | None = None
-        self.current_match_id: str = "epl_mci_ars"
+        self.current_match_id: str = "synthetic_ridge_harbor"
 
         # Bi-directional MatchPulse Intelligence Data
         self.matchpulse_intelligence: dict[str, Any] = {

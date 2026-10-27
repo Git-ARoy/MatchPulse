@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowClockwiseRegular, ChartMultipleRegular, EyeRegular, PersonRegular, PlayRegular, ShieldCheckmarkRegular, SparkleRegular, TranslateRegular } from "@fluentui/react-icons";
 import { motion, useReducedMotion } from "framer-motion";
+import { SimulationControlBar } from "../../src/components/dashboard/SimulationControlBar";
 
 type Team = { goals: number; shots: number; shots_on_target: number; passes: number; passes_completed: number; high_regains: number };
 type Player = { player_id: string; team_id: string; passes: number; passes_completed: number; shots: number; goals: number; high_regains: number; pressure_events: number };
@@ -20,6 +21,8 @@ const initialMatchId = "synthetic_ridge_harbor";
 const display = (value: string) => value.replaceAll("_", " ").replace(/\b\w/g, item => item.toUpperCase());
 const clock = (value?: { minute: number; second: number }) => value ? `${value.minute}:${String(value.second).padStart(2, "0")}` : "--:--";
 
+export type DashboardLanguage = "en" | "es" | "pt" | "de" | "fr" | "it" | "nl" | "ar" | "tr" | "ja";
+
 export default function DashboardPage() {
   const reduceMotion = useReducedMotion();
   const [matchId, setMatchId] = useState(initialMatchId);
@@ -30,7 +33,7 @@ export default function DashboardPage() {
   const [activeMatches, setActiveMatches] = useState<ActiveMatch[]>([]);
   const [selected, setSelected] = useState<Insight | null>(null);
   const [mode, setMode] = useState<"fan" | "analyst" | "broadcast">("fan");
-  const [language, setLanguage] = useState<"en" | "es">("en");
+  const [language, setLanguage] = useState<DashboardLanguage>("en");
   const [playerFocus, setPlayerFocus] = useState("");
   const [recap, setRecap] = useState<Recap | null>(null);
   const [loading, setLoading] = useState(true);
@@ -121,6 +124,8 @@ export default function DashboardPage() {
       <button className="refresh-button" onClick={() => { void loadMatch(); void loadActiveMatches(); }} aria-label="Refresh match data"><ArrowClockwiseRegular /></button>
     </section>
 
+    <SimulationControlBar apiUrl={api} matchId={matchId} onRefreshMatch={() => void loadMatch()} />
+
     <section className="scorebar" aria-live="polite">
       <div className="scorebar-team"><span className="team-mark home">RU</span><strong>{teams[0] ? display(teams[0][0]) : "Ridge United"}</strong></div>
       <div className="scorebar-score"><span>{clock(state?.match_clock)}</span><strong>{teams.length ? `${teams[0]?.[1].goals ?? 0} - ${teams[1]?.[1].goals ?? 0}` : "0 - 0"}</strong><small>{state?.status?.replaceAll("_", " ") ?? "Awaiting synthetic feed"}</small></div>
@@ -136,7 +141,7 @@ export default function DashboardPage() {
 
         <div className="metric-grid">{metrics.length ? metrics.map(metric => <article key={metric.team_id} className="metric-panel"><span>{display(metric.team_id)} pressure</span><strong>{metric.value.toFixed(0)}</strong><small>{metric.delta == null ? "Opening window" : `${metric.delta >= 0 ? "+" : ""}${metric.delta.toFixed(0)} vs previous five minutes`}</small></article>) : <article className="metric-panel placeholder"><span>Pressure index</span><strong>--</strong><small>Load a scenario to calculate</small></article>}</div>
 
-        <section className="recap-card"><div><p className="console-eyebrow">Automatic recap</p><h2>{recap?.headline ?? "A recap, grounded in the ledger"}</h2>{recap ? <p>{recap.summary}</p> : <p>Produce a compact, audience-aware wrap using only approved insights and their source events.</p>}</div><div className="recap-controls"><label><TranslateRegular /> Language<select value={language} onChange={event => setLanguage(event.target.value as "en" | "es")}><option value="en">English</option><option value="es">Español</option></select></label><button className="console-action" disabled={!state || actionPending} onClick={() => void loadRecap()}>Generate recap</button></div></section>
+        <section className="recap-card"><div><p className="console-eyebrow">Automatic recap</p><h2>{recap?.headline ?? "A recap, grounded in the ledger"}</h2>{recap ? <p>{recap.summary}</p> : <p>Produce a compact, audience-aware wrap using only approved insights and their source events.</p>}</div><div className="recap-controls"><label><TranslateRegular /> Language<select value={language} onChange={event => setLanguage(event.target.value as DashboardLanguage)}><option value="en">English</option><option value="es">Español</option><option value="pt">Português</option><option value="de">Deutsch</option><option value="fr">Français</option><option value="it">Italiano</option><option value="nl">Nederlands</option><option value="ar">العربية</option><option value="tr">Türkçe</option><option value="ja">日本語</option></select></label><button className="console-action" disabled={!state || actionPending} onClick={() => void loadRecap()}>Generate recap</button></div></section>
       </section>
 
       <aside className="console-rail">

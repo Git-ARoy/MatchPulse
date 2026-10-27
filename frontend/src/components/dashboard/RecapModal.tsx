@@ -73,6 +73,46 @@ const RECAP_DATA_BY_LANG: Record<string, { headline: string; summary: string; mi
       "84' — ゴール！M. ヴァンスが右隅へ冷静に流し込む",
     ],
   },
+  pt: {
+    headline: "Resumo Verificado de Inteligência · Ridge United 1 - 0 Harbor FC",
+    summary: "O Ridge United garantiu a vitória graças a uma mudança tática agressiva aos 70 minutos. A ingestão de 2.714 eventos canônicos com 0 anomalias revelou que a pressão sustentada no terço final gerou 8 penetrações na área e um aumento de +41.0 Δ no índice de pressão, culminando no gol decisivo aos 84 minutos.",
+    milestones: [
+      "18' — Contra-ataque veloz do Harbor FC (Finalização a 98.4 km/h defendida)",
+      "42' — Recuperação tática no meio-campo (PPDA 6.4)",
+      "72' — Analista detecta forte alta na pressão (+41.0 Δ)",
+      "84' — GOL! M. Vance finaliza no canto direito após jogada na área",
+    ],
+  },
+  it: {
+    headline: "Riepilogo Analitico Verificato · Ridge United 1 - 0 Harbor FC",
+    summary: "Il Ridge United conquista la vittoria grazie a un cambio tattico decisivo al 70'. L'analisi in tempo reale di 2.714 eventi canonici con 0 anomalie dimostra che il pressing alto ha prodotto 8 ingressi in area di rigore e un'impennata di +41.0 Δ nell'indice di pressione, portando al gol partita all'84'.",
+    milestones: [
+      "18' — Ripartenza pericolosa dell'Harbor FC (Tiro nello specchio a 98.4 km/h parato)",
+      "42' — Equilibrio tattico e riconquista palla a metà campo (PPDA 6.4)",
+      "72' — Il sistema rileva un netto aumento di pressione (+41.0 Δ)",
+      "84' — GOL! M. Vance infila all'angolino basso di destra dopo l'inserimento in area",
+    ],
+  },
+  nl: {
+    headline: "Geverifieerd Wedstrijdrapport · Ridge United 1 - 0 Harbor FC",
+    summary: "Ridge United stelde de overwinning veilig via een agressieve tactische omzetting in de 70e minuut. De verwerking van 2.714 canonieke gebeurtenissen toonde aan dat aanhoudende druk in het aanvallende derde 8 strafschopgebied-penetraties en een stijging van +41.0 Δ in de drukindex opleverde, leidend tot de winnende treffer in minuut 84.",
+    milestones: [
+      "18' — Vroege counterdreiging Harbor FC (Schot op doel met 98.4 km/u gepareerd)",
+      "42' — Tactische omschakeling en balverovering op het middenveld (PPDA 6.4)",
+      "72' — Data-analist signaleert piek in drukintensiteit (+41.0 Δ)",
+      "84' — DOELPUNT! M. Vance scoort beheerst in de verre hoek na druk op de zestien",
+    ],
+  },
+  tr: {
+    headline: "Doğrulanmış Taktik Maç Özeti · Ridge United 1 - 0 Harbor FC",
+    summary: "Ridge United, 70. dakikada yaptığı agresif taktiksel hamleyle galibiyeti perçinledi. Sıfır sıra dışı sapmayla işlenen 2.714 resmi veri olayı, son üçüncü bölgedeki baskının ceza sahasına 8 giriş ve Baskı Endeksinde +41.0 Δ artış yaratarak 84. dakikadaki galibiyet golünü getirdiğini ortaya koydu.",
+    milestones: [
+      "18' — Harbor FC'den tehlikeli kontra atak (98.4 km/s hızındaki isabetli şut kurtarıldı)",
+      "42' — Orta sahada taktiksel top kazanımı ve denge sağlandı (PPDA 6.4)",
+      "72' — Maç Analisti yüksek baskı dalgasını tespit etti (+41.0 Δ Baskı-v1)",
+      "84' — GOL! M. Vance ceza sahasına yapılan sızma sonrası sağ alt köşeye vurdu",
+    ],
+  },
 };
 
 export function RecapModal({ isOpen, onClose, matchId, score }: RecapModalProps) {
@@ -154,9 +194,13 @@ export function RecapModal({ isOpen, onClose, matchId, score }: RecapModalProps)
             {[
               { id: "en", label: "🇬🇧 English" },
               { id: "es", label: "🇪🇸 Español" },
-              { id: "fr", label: "🇫🇷 Français" },
+              { id: "pt", label: "🇧🇷 Português" },
               { id: "de", label: "🇩🇪 Deutsch" },
+              { id: "fr", label: "🇫🇷 Français" },
+              { id: "it", label: "🇮🇹 Italiano" },
+              { id: "nl", label: "🇳🇱 Nederlands" },
               { id: "ar", label: "🇸🇦 العربية" },
+              { id: "tr", label: "🇹🇷 Türkçe" },
               { id: "ja", label: "🇯🇵 日本語" },
             ].map((item) => (
               <button

@@ -4,7 +4,7 @@ import { useState } from "react";
 
 export type AudienceModeType = "fan" | "analyst" | "broadcast" | "novice";
 export type ClubBiasType = "neutral" | "ridge" | "harbor";
-export type LanguageType = "en" | "es" | "fr" | "de" | "ar" | "ja";
+export type LanguageType = "en" | "es" | "pt" | "de" | "fr" | "it" | "nl" | "ar" | "tr" | "ja";
 
 interface PersonalizationProps {
   audience: AudienceModeType;
@@ -159,9 +159,13 @@ export function PersonalizationBar({
           >
             <option value="en">🇬🇧 English (Global Studio)</option>
             <option value="es">🇪🇸 Español (La Liga Feed)</option>
-            <option value="fr">🇫🇷 Français (Diffusion PL)</option>
+            <option value="pt">🇧🇷 Português (Brasileirão / Seleção)</option>
             <option value="de">🇩🇪 Deutsch (Sky Sport DE)</option>
+            <option value="fr">🇫🇷 Français (Diffusion PL)</option>
+            <option value="it">🇮🇹 Italiano (Serie A / Calcio)</option>
+            <option value="nl">🇳🇱 Nederlands (Eredivisie / Oranje)</option>
             <option value="ar">🇸🇦 العربية (beIN Sports)</option>
+            <option value="tr">🇹🇷 Türkçe (Süper Lig)</option>
             <option value="ja">🇯🇵 日本語 (U-NEXT Studio)</option>
           </select>
         </div>

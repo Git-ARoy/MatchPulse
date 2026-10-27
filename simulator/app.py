@@ -30,8 +30,8 @@ def on_simulation_event(event: dict[str, Any]) -> None:
 
 
 simulation = MatchSimulation(
-    match_id="epl_mci_ars",
-    matchup_id="epl_mci_ars",
+    match_id="synthetic_ridge_harbor",
+    matchup_id="synthetic_ridge_harbor",
     event_callback=on_simulation_event,
 )
 

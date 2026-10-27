@@ -42,6 +42,7 @@ from app.services.match_service import (
     MatchService,
 )
 from app.services.live_bus import live_bus
+from app.services.simulation_bridge import SimulationBridge
 
 app = FastAPI(title="MatchPulse API", version="0.1.0")
 
@@ -54,6 +55,7 @@ app.add_middleware(
 )
 
 service = MatchService()
+simulation_bridge = SimulationBridge(service)
 
 
 @app.middleware("http")
@@ -296,18 +298,62 @@ def get_state(match_id: str, request: Request) -> dict[str, Any] | JSONResponse:
 @app.get("/api/v1/matches/{match_id}/tracking", response_model=None, responses={404: {"model": ErrorResponse}})
 async def get_match_tracking(match_id: str, request: Request) -> dict[str, Any] | JSONResponse:
     """Fetch live 22-player and ball tracking telemetry from the simulation engine."""
-    import httpx
-    sim_url = os.getenv("SIMULATOR_API_URL", "http://localhost:8050").rstrip("/")
-    try:
-        async with httpx.AsyncClient(timeout=1.5) as client:
-            res = await client.get(f"{sim_url}/api/simulation/tracking")
-            if res.status_code == 200:
-                data = res.json()
-                if data.get("match_id") == match_id:
-                    return data
-    except Exception:
-        pass
+    tracking = await simulation_bridge.get_tracking(match_id)
+    if tracking:
+        return tracking
     return error_response(request, 404, "TRACKING_UNAVAILABLE", "No live simulation tracking source connected for this match.")
+
+
+@app.get("/api/v1/simulation/status", response_model=None)
+async def get_simulation_status(match_id: str = "synthetic_ridge_harbor") -> dict[str, Any]:
+    """Inspect current physics simulation engine status."""
+    return await simulation_bridge.get_status(match_id)
+
+
+@app.post("/api/v1/simulation/start", response_model=None)
+async def start_simulation(match_id: str = "synthetic_ridge_harbor") -> dict[str, Any]:
+    """Start or resume continuous real-time match simulation."""
+    return await simulation_bridge.start(match_id)
+
+
+@app.post("/api/v1/simulation/pause", response_model=None)
+async def pause_simulation() -> dict[str, Any]:
+    """Pause live simulation."""
+    return await simulation_bridge.pause()
+
+
+@app.post("/api/v1/simulation/resume", response_model=None)
+async def resume_simulation() -> dict[str, Any]:
+    """Resume live simulation."""
+    return await simulation_bridge.resume()
+
+
+@app.post("/api/v1/simulation/speed", response_model=None)
+async def set_simulation_speed(body: dict[str, Any]) -> dict[str, Any]:
+    """Change simulation speed multiplier (1x, 2x, 5x, 10x)."""
+    multiplier = float(body.get("multiplier", 1.0))
+    return await simulation_bridge.set_speed(multiplier)
+
+
+@app.post("/api/v1/simulation/inject", response_model=None)
+async def inject_simulation_event(body: dict[str, Any]) -> dict[str, Any]:
+    """Inject scenario (penalty, red_card, free_kick)."""
+    action = str(body.get("action", "penalty"))
+    team_id = body.get("team_id")
+    return await simulation_bridge.inject(action, team_id)
+
+
+@app.post("/api/v1/simulation/reset", response_model=None)
+async def reset_simulation(body: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Reset simulation match."""
+    matchup_id = body.get("matchup_id") if body else None
+    return await simulation_bridge.reset(matchup_id)
+
+
+@app.get("/api/v1/simulation/matchups", response_model=None)
+def list_simulation_matchups() -> dict[str, Any]:
+    """List available synthetic matchups."""
+    return {"items": simulation_bridge.list_matchups()}
 
 
 @app.get("/api/v1/matches/{match_id}/events", response_model=EventsResponse, responses={404: {"model": ErrorResponse}})
