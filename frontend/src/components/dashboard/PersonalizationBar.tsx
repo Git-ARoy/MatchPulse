@@ -47,44 +47,32 @@ export function PersonalizationBar({
   const activePlayer = PLAYERS.find((p) => p.id === selectedPlayerId);
 
   return (
-    <div style={{ background: "#ffffff", border: "1px solid var(--line)", borderRadius: "16px", padding: "18px 24px", boxShadow: "var(--shadow-sm)", display: "flex", flexDirection: "column", gap: "16px" }}>
+    <div className="personalization-bar-card">
       {/* Top Controls Row */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
+      <div className="personalization-top-row">
         {/* Left: Section Title & Personalization Tag */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg, var(--pl-purple) 0%, var(--pitch-emerald) 100%)", display: "grid", placeItems: "center", color: "#fff", fontWeight: 900, fontSize: "16px" }}>
+        <div className="personalization-brand-group">
+          <div className="personalization-icon-badge" aria-hidden="true">
             ⚡
           </div>
           <div>
-            <div style={{ fontSize: "11px", fontWeight: 800, color: "var(--pitch-emerald)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            <div className="personalization-kicker">
               Stage (e) Personalization Engine
             </div>
-            <div style={{ fontSize: "16px", fontWeight: 900, color: "var(--pl-purple)", letterSpacing: "-0.02em" }}>
+            <div className="personalization-title">
               Personalized Premier League Studio Feed
             </div>
           </div>
         </div>
 
         {/* Right: Quick Studio Action Buttons */}
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+        <div className="personalization-action-buttons">
           {/* Broadcast Overlay Toggle */}
           <button
             type="button"
             onClick={() => setBroadcastOverlay(!broadcastOverlay)}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "8px 14px",
-              borderRadius: "8px",
-              fontSize: "12px",
-              fontWeight: 800,
-              cursor: "pointer",
-              border: broadcastOverlay ? "1px solid var(--accent-crimson)" : "1px solid var(--line)",
-              background: broadcastOverlay ? "rgba(225, 29, 72, 0.1)" : "var(--surface-subtle)",
-              color: broadcastOverlay ? "var(--accent-crimson)" : "var(--ink-secondary)",
-              transition: "all 0.15s ease",
-            }}
+            className={`tv-overlay-toggle-btn ${broadcastOverlay ? "active" : ""}`}
+            aria-pressed={broadcastOverlay}
           >
             <span>📺</span>
             <span>{broadcastOverlay ? "Hide TV Overlay" : "Live TV Overlay"}</span>
@@ -94,8 +82,7 @@ export function PersonalizationBar({
           <button
             type="button"
             onClick={onOpenRecapModal}
-            className="btn-emerald"
-            style={{ padding: "8px 16px", fontSize: "12px" }}
+            className="btn-emerald recap-open-btn"
           >
             <span>📋 Generate Match Recap</span>
           </button>
@@ -103,16 +90,17 @@ export function PersonalizationBar({
       </div>
 
       {/* Selectors Grid: Audience Mode, Club Focus, Player Focus, Language */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px", paddingTop: "12px", borderTop: "1px solid var(--line)" }}>
+      <div className="personalization-selects-grid">
         {/* 1. Audience Mode Selector */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          <label style={{ fontSize: "11px", fontWeight: 800, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+        <div className="personalization-select-col">
+          <label className="select-label">
             Audience Experience
           </label>
           <select
             value={audience}
             onChange={(e) => setAudience(e.target.value as AudienceModeType)}
-            style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--line-strong)", fontSize: "13px", fontWeight: 700, color: "var(--pl-purple)", background: "#fff", cursor: "pointer" }}
+            className="personalization-select"
+            aria-label="Audience Experience"
           >
             <option value="fan">🎉 Casual Fan (Emotion & Story)</option>
             <option value="analyst">📊 Tactical Analyst (Deep Metrics)</option>
@@ -122,14 +110,15 @@ export function PersonalizationBar({
         </div>
 
         {/* 2. Club Affiliation */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          <label style={{ fontSize: "11px", fontWeight: 800, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+        <div className="personalization-select-col">
+          <label className="select-label">
             Club Perspective
           </label>
           <select
             value={club}
             onChange={(e) => setClub(e.target.value as ClubBiasType)}
-            style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--line-strong)", fontSize: "13px", fontWeight: 700, color: "var(--pl-purple)", background: "#fff", cursor: "pointer" }}
+            className="personalization-select"
+            aria-label="Club Perspective"
           >
             <option value="neutral">⚖️ Neutral & Balanced</option>
             <option value="ridge">🟢 Ridge United (Home Bias)</option>
@@ -138,14 +127,15 @@ export function PersonalizationBar({
         </div>
 
         {/* 3. Player Focused Cam */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          <label style={{ fontSize: "11px", fontWeight: 800, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+        <div className="personalization-select-col">
+          <label className="select-label">
             Player Focus Mode (Cam)
           </label>
           <select
             value={selectedPlayerId || ""}
             onChange={(e) => setSelectedPlayerId(e.target.value || null)}
-            style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--line-strong)", fontSize: "13px", fontWeight: 700, color: "var(--pl-purple)", background: "#fff", cursor: "pointer" }}
+            className="personalization-select"
+            aria-label="Player Focus Mode"
           >
             <option value="">Full Match Overview (All Players)</option>
             {PLAYERS.map((p) => (
@@ -157,14 +147,15 @@ export function PersonalizationBar({
         </div>
 
         {/* 4. Multi-Language Storytelling */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          <label style={{ fontSize: "11px", fontWeight: 800, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+        <div className="personalization-select-col">
+          <label className="select-label">
             Multi-Language Narration
           </label>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value as LanguageType)}
-            style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--line-strong)", fontSize: "13px", fontWeight: 700, color: "var(--pl-purple)", background: "#fff", cursor: "pointer" }}
+            className="personalization-select"
+            aria-label="Multi-Language Narration"
           >
             <option value="en">🇬🇧 English (Global Studio)</option>
             <option value="es">🇪🇸 Español (La Liga Feed)</option>
@@ -178,36 +169,36 @@ export function PersonalizationBar({
 
       {/* Dynamic Player Focus Telemetry HUD */}
       {activePlayer && (
-        <div style={{ background: "rgba(5, 150, 105, 0.05)", border: "1px solid rgba(5, 150, 105, 0.2)", borderRadius: "12px", padding: "12px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span style={{ fontSize: "20px" }}>🎯</span>
+        <div className="personalization-player-hud">
+          <div className="hud-header-group">
+            <span className="hud-target-icon">🎯</span>
             <div>
-              <div style={{ fontSize: "13px", fontWeight: 900, color: "var(--pl-purple)" }}>
+              <div className="hud-player-title">
                 FOCUS ACTIVE: {activePlayer.name} ({activePlayer.team})
               </div>
-              <div style={{ fontSize: "11px", color: "var(--ink-secondary)" }}>
+              <div className="hud-player-sub">
                 Real-time tracking enabled with threshold alarms
               </div>
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "12px", flexWrap: "wrap" }}>
-            <div>
-              <span style={{ color: "var(--ink-muted)" }}>Sprint Peak: </span>
-              <strong style={{ color: "var(--accent-crimson)", fontWeight: 900 }}>{activePlayer.speed}</strong>
+          <div className="personalization-hud-facts">
+            <div className="hud-stat-box">
+              <span className="stat-name">Sprint Peak</span>
+              <strong className="stat-val crimson">{activePlayer.speed}</strong>
             </div>
-            <div>
-              <span style={{ color: "var(--ink-muted)" }}>Total Distance: </span>
-              <strong style={{ color: "var(--pl-purple)", fontWeight: 900 }}>{activePlayer.dist}</strong>
+            <div className="hud-stat-box">
+              <span className="stat-name">Total Distance</span>
+              <strong className="stat-val purple">{activePlayer.dist}</strong>
             </div>
-            <div>
-              <span style={{ color: "var(--ink-muted)" }}>Pass Accuracy: </span>
-              <strong style={{ color: "var(--pitch-emerald)", fontWeight: 900 }}>{activePlayer.passAcc}</strong>
+            <div className="hud-stat-box">
+              <span className="stat-name">Pass Accuracy</span>
+              <strong className="stat-val emerald">{activePlayer.passAcc}</strong>
             </div>
             <button
               type="button"
               onClick={() => setSelectedPlayerId(null)}
-              style={{ background: "none", border: "none", color: "var(--ink-muted)", cursor: "pointer", fontSize: "12px", fontWeight: 700, textDecoration: "underline" }}
+              className="hud-clear-btn"
             >
               Clear Focus
             </button>

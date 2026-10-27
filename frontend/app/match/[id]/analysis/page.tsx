@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowClockwiseRegular, ArrowLeftRegular, EyeRegular, MapRegular, PlayRegular, ShieldCheckmarkRegular } from "@fluentui/react-icons";
+import { ArrowClockwiseRegular, ArrowLeftRegular, EyeRegular, MapRegular, PlayRegular, ShieldCheckmarkRegular, VideoRegular } from "@fluentui/react-icons";
 import { motion, useReducedMotion } from "framer-motion";
+import { AutoEventingFeed } from "../../../../src/components/radar/AutoEventingFeed";
 
 type Event = { event_id: string; minute: number; second: number; event_type: string; team_id: string; player_id?: string; x?: number; y?: number; zone?: string };
 type Insight = { insight_id: string; headline: string; summary: string; source_event_ids: string[]; match_clock: { minute: number; second: number } };
@@ -21,6 +22,7 @@ export default function AnalysisPage({ params }: { params: Promise<{ id: string 
   const [insights, setInsights] = useState<Insight[]>([]);
   const [selectedInsight, setSelectedInsight] = useState<Insight | null>(null);
   const [showPressure, setShowPressure] = useState(true);
+  const [showAutoEventing, setShowAutoEventing] = useState(false);
   const [status, setStatus] = useState("Connecting to the synthetic event ledger…");
 
   useEffect(() => { void params.then(value => setMatchId(value.id || "synthetic_ridge_harbor")); }, [params]);
@@ -56,12 +58,31 @@ export default function AnalysisPage({ params }: { params: Promise<{ id: string 
   const evidenceIds = new Set(selectedInsight?.source_event_ids ?? []);
   const plottedEvents = useMemo(() => events.filter(event => typeof event.x === "number" && typeof event.y === "number"), [events]);
   const teams = Object.entries(state?.teams ?? {});
+  const homeTeamId = teams[0]?.[0] ?? "";
+  const homeTeamName = teams[0]?.[0] ? name(teams[0][0]) : "Home Team";
+  const awayTeamName = teams[1]?.[0] ? name(teams[1][0]) : "Away Team";
 
   return <main className="radar-shell">
     <header className="radar-header">
       <div><Link href="/dashboard" className="radar-back"><ArrowLeftRegular /> Live console</Link><p className="console-eyebrow">Verified event replay</p><h1>Tactical event radar</h1><p>Evidence coordinates, not invented player tracking.</p></div>
-      <div className="radar-actions"><button className={showPressure ? "selected" : ""} onClick={() => setShowPressure(value => !value)}><MapRegular /> Pressure overlay</button><button onClick={() => void load()} aria-label="Refresh tactical radar"><ArrowClockwiseRegular /></button></div>
+      <div className="radar-actions">
+        <button className={showAutoEventing ? "selected" : ""} onClick={() => setShowAutoEventing(value => !value)}>
+          <VideoRegular /> Optical auto-eventing
+        </button>
+        <button className={showPressure ? "selected" : ""} onClick={() => setShowPressure(value => !value)}>
+          <MapRegular /> Pressure overlay
+        </button>
+        <button onClick={() => void load()} aria-label="Refresh tactical radar">
+          <ArrowClockwiseRegular />
+        </button>
+      </div>
     </header>
+
+    {showAutoEventing && (
+      <div style={{ marginBottom: "20px" }}>
+        <AutoEventingFeed isOpen={showAutoEventing} onClose={() => setShowAutoEventing(false)} />
+      </div>
+    )}
 
     <section className="radar-score"><span><ShieldCheckmarkRegular /> Synthetic, fictional match</span><strong>{teams[0] ? `${name(teams[0][0])} ${teams[0][1].goals} – ${teams[1]?.[1].goals ?? 0} ${name(teams[1]?.[0])}` : "Awaiting match state"}</strong><time>{clock(state?.match_clock)}</time></section>
     <p className="radar-status">{status}</p>
@@ -72,10 +93,13 @@ export default function AnalysisPage({ params }: { params: Promise<{ id: string 
         <div className={`event-pitch ${showPressure ? "pressure-on" : ""}`}>
           <span className="pitch-line halfway" /><span className="pitch-circle" /><span className="pitch-box left" /><span className="pitch-box right" />
           {showPressure && <><span className="pressure-zone ridge" /><span className="pressure-zone harbor" /></>}
-          {plottedEvents.map((event, index) => <motion.button key={event.event_id} className={`event-marker ${event.team_id.includes("ridge") ? "ridge" : "harbor"} ${evidenceIds.has(event.event_id) ? "evidence" : ""}`} title={`${clock(event)} ${name(event.event_type)} · ${name(event.player_id)}`} initial={reduceMotion ? false : { opacity: 0, scale: .6 }} animate={{ opacity: 1, scale: evidenceIds.has(event.event_id) ? 1.32 : 1 }} transition={{ type: "spring", stiffness: 300, damping: 30, delay: reduceMotion ? 0 : index * .03 }} style={{ left: `${event.x}%`, top: `${event.y}%` }} onClick={() => setSelectedInsight(insights.find(insight => insight.source_event_ids.includes(event.event_id)) ?? null)}><span /></motion.button>)}
+          {plottedEvents.map((event, index) => {
+            const isHome = event.team_id === homeTeamId || event.team_id.includes("ridge");
+            return <motion.button key={event.event_id} className={`event-marker ${isHome ? "ridge" : "harbor"} ${evidenceIds.has(event.event_id) ? "evidence" : ""}`} title={`${clock(event)} ${name(event.event_type)} · ${name(event.player_id)}`} initial={reduceMotion ? false : { opacity: 0, scale: .6 }} animate={{ opacity: 1, scale: evidenceIds.has(event.event_id) ? 1.32 : 1 }} transition={{ type: "spring", stiffness: 300, damping: 30, delay: reduceMotion ? 0 : index * .03 }} style={{ left: `${event.x}%`, top: `${event.y}%` }} onClick={() => setSelectedInsight(insights.find(insight => insight.source_event_ids.includes(event.event_id)) ?? null)}><span /></motion.button>;
+          })}
           {!plottedEvents.length && <div className="pitch-empty"><PlayRegular /><p>No accepted coordinates yet</p><small>Load a synthetic scenario in the live console.</small></div>}
         </div>
-        <div className="pitch-legend"><span><i className="ridge" /> Ridge United event</span><span><i className="harbor" /> Harbor FC event</span><span><i className="evidence" /> Selected evidence</span></div>
+        <div className="pitch-legend"><span><i className="ridge" /> {homeTeamName} event</span><span><i className="harbor" /> {awayTeamName} event</span><span><i className="evidence" /> Selected evidence</span></div>
       </section>
 
       <aside className="radar-side">

@@ -1,0 +1,640 @@
+:root {
+  --bg-main: #0B0F17;
+  --bg-card: #131A26;
+  --bg-card-subtle: #1A2434;
+  --border-color: #243147;
+  --border-focus: #385175;
+  --text-primary: #F0F4FC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --accent-cyan: #00E5FF;
+  --accent-green: #10B981;
+  --accent-red: #EF4444;
+  --accent-amber: #F59E0B;
+  --pitch-grass: #123320;
+  --pitch-stripe: #153A25;
+  --pitch-lines: rgba(255, 255, 255, 0.45);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+.sim-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header */
+.sim-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  gap: 1.5rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo-mark {
+  width: 2.25rem;
+  height: 2.25rem;
+  background: linear-gradient(135deg, #00C6FF, #0072FF);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+}
+
+.brand h1 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.brand .subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.matchup-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.matchup-selector label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.matchup-selector select {
+  background-color: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+}
+
+.matchup-selector select:focus {
+  border-color: var(--accent-cyan);
+}
+
+/* Scoreboard */
+.scoreboard {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 0.35rem 1rem;
+  gap: 1rem;
+}
+
+.scoreboard .team {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.scoreboard .badge {
+  background-color: var(--bg-card-subtle);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.scoreboard .score-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 6rem;
+}
+
+.scoreboard #scoreText {
+  font-size: 1.25rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+}
+
+.scoreboard .clock-display {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.scoreboard .phase-badge {
+  background-color: #1E293B;
+  color: #94A3B8;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+}
+
+/* Layout */
+.sim-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  flex: 1;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .sim-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Pitch Area */
+.pitch-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pitch-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pitch-status {
+  font-size: 0.82rem;
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+}
+
+.toolbar-right {
+  display: flex;
+  gap: 1rem;
+}
+
+.toggle-control {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.toggle-control input {
+  cursor: pointer;
+  accent-color: var(--accent-cyan);
+}
+
+.canvas-wrapper {
+  background-color: #07130A;
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  position: relative;
+  aspect-ratio: 1050 / 680;
+}
+
+#pitchCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Control Deck */
+.control-deck {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn {
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 0.45rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--accent-green);
+  color: #000;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.btn-secondary {
+  background-color: var(--bg-card-subtle);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #243147;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-outline:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.speed-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.group-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.speed-pills {
+  display: flex;
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 0.4rem;
+  padding: 0.2rem;
+  gap: 0.2rem;
+}
+
+.speed-pills .pill {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.3rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.speed-pills .pill:hover {
+  color: var(--text-primary);
+}
+
+.speed-pills .pill.active {
+  background-color: var(--accent-cyan);
+  color: #000;
+}
+
+/* Sidebar */
+.sim-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.15rem;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.card-header h3 {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.badge-subtle {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  background-color: var(--bg-card-subtle);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  font-family: var(--font-mono);
+}
+
+.card-desc {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.85rem;
+}
+
+/* Injector */
+.inject-buttons {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.btn-inject {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background-color: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.45rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.btn-inject:hover {
+  background-color: #222E42;
+  border-color: var(--border-focus);
+}
+
+.btn-inject .icon {
+  font-size: 1rem;
+}
+
+/* Bridge Telemetry */
+.bridge-status {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 1rem;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
+.status-connected {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: var(--accent-green);
+  border: 1px solid var(--accent-green);
+}
+
+.status-idle {
+  background-color: rgba(148, 163, 184, 0.2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.status-unreachable {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: var(--accent-red);
+  border: 1px solid var(--accent-red);
+}
+
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.telemetry-item {
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+  border-radius: 0.4rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.telemetry-item .lbl {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.telemetry-item strong {
+  font-size: 1rem;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  margin-top: 0.2rem;
+}
+
+.bridge-footer {
+  border-top: 1px solid var(--border-color);
+  padding-top: 0.65rem;
+  text-align: right;
+}
+
+.link-external {
+  color: var(--accent-cyan);
+  font-size: 0.8rem;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.link-external:hover {
+  text-decoration: underline;
+}
+
+/* Feed */
+.event-feed {
+  height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.feed-empty {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.event-entry {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.4rem;
+  font-size: 0.78rem;
+  gap: 0.6rem;
+}
+
+.event-entry.goal {
+  border-color: var(--accent-green);
+  background-color: rgba(16, 185, 129, 0.08);
+}
+
+.event-entry.card {
+  border-color: var(--accent-red);
+}
+
+.event-entry time {
+  font-family: var(--font-mono);
+  color: var(--accent-cyan);
+  font-weight: 600;
+  font-size: 0.72rem;
+  min-width: 2.8rem;
+}
+
+.event-entry .type {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.event-entry .actor {
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  margin-left: auto;
+  font-family: var(--font-mono);
+}
+
+/* MatchPulse Intelligence Feedback */
+.intelligence-card {
+  border-color: #385175;
+  background: linear-gradient(180deg, #131A26 0%, #152238 100%);
+}
+
+.mp-pressure-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.pressure-row {
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+  border-radius: 0.4rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.pressure-row .team-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pressure-row .pressure-val {
+  font-size: 1.1rem;
+  font-family: var(--font-mono);
+  color: var(--accent-cyan);
+  margin-top: 0.15rem;
+}
+
+.mp-insight-block {
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 0.45rem;
+  padding: 0.65rem;
+  font-size: 0.78rem;
+}
+
+.mp-insight-empty {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+  font-style: italic;
+}
+
+.mp-insight-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mp-insight-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mp-insight-badge {
+  font-size: 0.62rem;
+  color: var(--accent-green);
+  background-color: rgba(16, 185, 129, 0.15);
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.2rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.mp-insight-headline {
+  font-weight: 700;
+  color: #FFFFFF;
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.mp-insight-summary {
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MatchPulse Synthetic Match Simulator</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="sim-shell">
+    <!-- Top Bar -->
+    <header class="sim-header">
+      <div class="brand">
+        <div class="logo-mark">⚡</div>
+        <div>
+          <h1>MatchPulse Simulator</h1>
+          <p class="subtitle">Autonomous 90-Minute Match Engine · 22 Player Agents & Ball Physics</p>
+        </div>
+      </div>
+
+      <div class="matchup-selector">
+        <label for="matchupSelect">Matchup</label>
+        <select id="matchupSelect">
+          <option value="epl_mci_ars">Manchester City vs. Arsenal</option>
+          <option value="epl_liv_che">Liverpool vs. Chelsea</option>
+          <option value="epl_tot_mun">Tottenham vs. Manchester United</option>
+        </select>
+      </div>
+
+      <div class="scoreboard">
+        <div class="team home" id="homeScoreTeam">
+          <span class="badge" id="homeBadge">MCI</span>
+          <span class="name" id="homeName">Man City</span>
+        </div>
+        <div class="score-display">
+          <span id="scoreText">0 - 0</span>
+          <div class="clock-display">
+            <span id="clockText">00:00</span>
+            <span class="phase-badge" id="phaseBadge">NOT STARTED</span>
+          </div>
+        </div>
+        <div class="team away" id="awayScoreTeam">
+          <span class="name" id="awayName">Arsenal</span>
+          <span class="badge" id="awayBadge">ARS</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <div class="sim-layout">
+      <!-- Pitch Center Column -->
+      <main class="pitch-container">
+        <div class="pitch-toolbar">
+          <div class="toolbar-left">
+            <span class="pitch-status" id="pitchStatus">Pitch Ready · Awaiting Kickoff</span>
+          </div>
+          <div class="toolbar-right">
+            <label class="toggle-control">
+              <input type="checkbox" id="toggleNames" checked>
+              <span>Player Names</span>
+            </label>
+            <label class="toggle-control">
+              <input type="checkbox" id="toggleZones" checked>
+              <span>Tactical Zones</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="canvas-wrapper">
+          <canvas id="pitchCanvas" width="1050" height="680"></canvas>
+        </div>
+
+        <!-- Simulator Master Controls -->
+        <section class="control-deck">
+          <div class="control-group buttons">
+            <button class="btn btn-primary" id="btnStart">Start Match</button>
+            <button class="btn btn-secondary" id="btnPause" disabled>Pause</button>
+            <button class="btn btn-secondary" id="btnResume" disabled>Resume</button>
+            <button class="btn btn-outline" id="btnReset">Reset (00:00)</button>
+            <button class="btn btn-outline" id="btnAdvanceHalf" style="display: none;">Start 2nd Half</button>
+          </div>
+
+          <div class="control-group speed-group">
+            <span class="group-label">Simulation Speed</span>
+            <div class="speed-pills">
+              <button class="pill active" data-speed="1">1x (90 min)</button>
+              <button class="pill" data-speed="2">2x</button>
+              <button class="pill" data-speed="5">5x</button>
+              <button class="pill" data-speed="10">10x</button>
+              <button class="pill" data-speed="30">30x</button>
+              <button class="pill" data-speed="60">60x</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Right Sidebar: Scenario Injectors & Event Ledger & MatchPulse Status -->
+      <aside class="sim-sidebar">
+        <!-- Scenario Injector -->
+        <section class="card injector-card">
+          <div class="card-header">
+            <h3>Scenario Injector</h3>
+            <span class="badge-subtle">Manual Override</span>
+          </div>
+          <p class="card-desc">Trigger real-time tactical moments to test MatchPulse analytics & multi-agent triggers.</p>
+          <div class="inject-buttons">
+            <button class="btn-inject" data-action="penalty" data-team="home">
+              <span class="icon">🎯</span>
+              <span>Award Penalty (Home)</span>
+            </button>
+            <button class="btn-inject" data-action="penalty" data-team="away">
+              <span class="icon">🎯</span>
+              <span>Award Penalty (Away)</span>
+            </button>
+            <button class="btn-inject" data-action="free_kick" data-team="home">
+              <span class="icon">📍</span>
+              <span>Free Kick on Box</span>
+            </button>
+            <button class="btn-inject" data-action="red_card" data-team="away">
+              <span class="icon">🟥</span>
+              <span>Red Card Tackle</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- MatchPulse Bridge Telemetry -->
+        <section class="card bridge-card">
+          <div class="card-header">
+            <h3>MatchPulse Ingestion Bridge</h3>
+            <span class="bridge-status status-idle" id="bridgeStatusIndicator">Idle</span>
+          </div>
+          <div class="telemetry-grid">
+            <div class="telemetry-item">
+              <span class="lbl">Events Pushed</span>
+              <strong id="statDelivered">0</strong>
+            </div>
+            <div class="telemetry-item">
+              <span class="lbl">HTTP 200 Ack</span>
+              <strong id="statAcks">0</strong>
+            </div>
+            <div class="telemetry-item">
+              <span class="lbl">Latency</span>
+              <strong id="statLatency">0 ms</strong>
+            </div>
+          </div>
+          <div class="bridge-footer">
+            <a href="http://localhost:3000/dashboard" target="_blank" rel="noopener noreferrer" class="link-external">
+              Open MatchPulse Dashboard ↗
+            </a>
+          </div>
+        </section>
+
+        <!-- MatchPulse Intelligence Received Back -->
+        <section class="card intelligence-card">
+          <div class="card-header">
+            <h3>MatchPulse AI Feedback</h3>
+            <span class="badge-subtle" id="mpSyncBadge">Awaiting Feedback</span>
+          </div>
+          <div class="mp-pressure-block">
+            <div class="pressure-row">
+              <span class="team-label" id="mpHomePressureLabel">Home Pressure</span>
+              <strong class="pressure-val" id="mpHomePressureVal">--</strong>
+            </div>
+            <div class="pressure-row">
+              <span class="team-label" id="mpAwayPressureLabel">Away Pressure</span>
+              <strong class="pressure-val" id="mpAwayPressureVal">--</strong>
+            </div>
+          </div>
+          <div class="mp-insight-block" id="mpInsightContainer">
+            <div class="mp-insight-empty">Insights generated by MatchPulse's multi-agent orchestrator will appear here as moments are detected.</div>
+          </div>
+        </section>
+
+        <!-- Live Canonical Event Feed -->
+        <section class="card feed-card">
+          <div class="card-header">
+            <h3>Live Event Ledger</h3>
+            <span class="badge-subtle" id="eventCountBadge">0 events</span>
+          </div>
+          <div class="event-feed" id="eventFeedList">
+            <div class="feed-empty">Simulation awaiting kick-off. Events will appear here chronologically.</div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -46,11 +46,11 @@ export function AutoEventingFeed({ isOpen, onClose }: AutoEventingProps) {
       }}
     >
       {/* Top Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 255, 255, 0.15)", paddingBottom: "12px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#00ff87", boxShadow: "0 0 10px #00ff87" }} />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", borderBottom: "1px solid rgba(255, 255, 255, 0.15)", paddingBottom: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: "1 1 240px" }}>
+          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#00ff87", boxShadow: "0 0 10px #00ff87", flexShrink: 0 }} />
           <div>
-            <div style={{ fontSize: "14px", fontWeight: 900, letterSpacing: "0.04em", color: "#00ff87" }}>
+            <div style={{ fontSize: "clamp(12px, 3vw, 14px)", fontWeight: 900, letterSpacing: "0.04em", color: "#00ff87" }}>
               AI COMPUTER VISION AUTO-EVENTING STREAM
             </div>
             <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.7)" }}>
@@ -59,14 +59,15 @@ export function AutoEventingFeed({ isOpen, onClose }: AutoEventingProps) {
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
           <div style={{ fontSize: "11px", background: "rgba(255, 255, 255, 0.1)", padding: "4px 8px", borderRadius: "6px" }}>
             Model Inference: <strong style={{ color: "#00ff87" }}>14.2ms</strong> · 60 FPS
           </div>
           <button
             type="button"
             onClick={onClose}
-            style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: "14px", fontWeight: 800 }}
+            aria-label="Close auto-eventing feed"
+            style={{ background: "rgba(255, 255, 255, 0.1)", border: "none", color: "#fff", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 800 }}
           >
             ✕
           </button>
@@ -78,7 +79,7 @@ export function AutoEventingFeed({ isOpen, onClose }: AutoEventingProps) {
         style={{
           position: "relative",
           width: "100%",
-          height: "160px",
+          minHeight: "150px",
           background: "radial-gradient(ellipse at 50% 50%, #064e3b 0%, #022c22 100%)",
           borderRadius: "10px",
           overflow: "hidden",
@@ -86,7 +87,9 @@ export function AutoEventingFeed({ isOpen, onClose }: AutoEventingProps) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-around",
-          padding: "20px",
+          flexWrap: "wrap",
+          padding: "16px",
+          gap: "12px",
         }}
       >
         {/* Computer Vision Scan Line */}

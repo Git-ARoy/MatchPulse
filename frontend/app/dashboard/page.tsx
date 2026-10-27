@@ -12,6 +12,7 @@ type Variant = { headline: string; summary: string; why_it_matters: string; deta
 type Insight = { insight_id: string; headline: string; summary: string; why_it_matters: string; detail?: string; next_watch?: string; source_event_ids: string[]; match_clock: { minute: number; second: number }; validation?: { status: string }; audience_variants: Record<string, Variant>; agent_findings?: { stage: string; status: string }[] };
 type State = { match_clock: { minute: number; second: number }; status: string; teams: Record<string, Team>; metrics: Record<string, { team_id: string; value: number; delta?: number | null; availability: string }>; team_metrics: Record<string, { pass_completion_pct?: number | null; average_pass_distance_m?: number | null; average_pass_difficulty?: number | null; average_shot_speed_kph?: number | null }>; players: Player[]; synthetic: boolean; data_source: string; live_feed_available: boolean };
 type Scenario = { scenario_id: string; title: string; description: string; match_id: string; home_team_name: string; away_team_name: string };
+type ActiveMatch = { match_id: string; status: string; match_clock: { minute: number; second: number }; teams: Record<string, { goals: number }>; event_count: number };
 type Recap = { headline: string; summary: string; language: string; evidence_event_ids: string[] };
 
 const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -26,6 +27,7 @@ export default function DashboardPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [insights, setInsights] = useState<Insight[]>([]);
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [activeMatches, setActiveMatches] = useState<ActiveMatch[]>([]);
   const [selected, setSelected] = useState<Insight | null>(null);
   const [mode, setMode] = useState<"fan" | "analyst" | "broadcast">("fan");
   const [language, setLanguage] = useState<"en" | "es">("en");
@@ -78,14 +80,32 @@ export default function DashboardPage() {
     finally { setActionPending(false); }
   };
 
+  const loadActiveMatches = useCallback(async () => {
+    try {
+      const response = await fetch(`${api}/api/v1/matches`);
+      if (response.ok) {
+        const body = await response.json();
+        const items = (body.items || []) as ActiveMatch[];
+        const filtered = items.filter(item => !scenarios.some(s => s.match_id === item.match_id) && item.event_count > 0);
+        setActiveMatches(filtered);
+      }
+    } catch {
+      // Background match discovery silent error
+    }
+  }, [scenarios]);
+
   useEffect(() => { void fetch(`${api}/api/v1/demo/scenarios`).then(response => response.ok ? response.json() : Promise.reject()).then(body => setScenarios(body.items)).catch(() => setNotice("Start the API to load the synthetic showcase.")); }, []);
-  useEffect(() => { void loadMatch(); }, [loadMatch]);
+  useEffect(() => { void loadMatch(); void loadActiveMatches(); }, [loadMatch, loadActiveMatches]);
+  useEffect(() => {
+    const timer = setInterval(() => void loadActiveMatches(), 5000);
+    return () => clearInterval(timer);
+  }, [loadActiveMatches]);
   useEffect(() => {
     if (!state?.live_feed_available) return;
     const socket = new WebSocket(api.replace(/^http/, "ws") + `/api/v1/matches/${encodeURIComponent(matchId)}/live-stream`);
-    socket.onmessage = () => void loadMatch();
+    socket.onmessage = () => { void loadMatch(); void loadActiveMatches(); };
     return () => socket.close();
-  }, [loadMatch, matchId, state?.live_feed_available]);
+  }, [loadActiveMatches, loadMatch, matchId, state?.live_feed_available]);
 
   const activeCopy = selected?.audience_variants[mode] ?? selected;
   const teams = Object.entries(state?.teams ?? {});
@@ -96,8 +116,9 @@ export default function DashboardPage() {
     <section className="console-topline"><div><p className="console-eyebrow">Synthetic studio environment</p><h1>Live match intelligence</h1><p>Fictional events flow through the same ingest, interpret, explain, render, and personalize pipeline.</p></div><div className="synthetic-policy"><ShieldCheckmarkRegular /><span>No real Premier League match data</span></div></section>
 
     <section className="scenario-strip" aria-label="Synthetic scenarios">
+      {activeMatches.map(m => <button key={m.match_id} className={`scenario-choice ${m.match_id === matchId ? "active" : ""}`} disabled={actionPending} onClick={() => { setMatchId(m.match_id); void loadMatch(m.match_id); }}><PlayRegular /><span><strong>{Object.keys(m.teams).map(display).join(" vs ") || display(m.match_id)}</strong><small>Live simulation ({clock(m.match_clock)} · {m.event_count} events)</small></span></button>)}
       {scenarios.map(scenario => <button key={scenario.scenario_id} className={`scenario-choice ${scenario.match_id === matchId ? "active" : ""}`} disabled={actionPending} onClick={() => void loadScenario(scenario)}><PlayRegular /><span><strong>{scenario.title}</strong><small>{scenario.description}</small></span></button>)}
-      <button className="refresh-button" onClick={() => void loadMatch()} aria-label="Refresh match data"><ArrowClockwiseRegular /></button>
+      <button className="refresh-button" onClick={() => { void loadMatch(); void loadActiveMatches(); }} aria-label="Refresh match data"><ArrowClockwiseRegular /></button>
     </section>
 
     <section className="scorebar" aria-live="polite">

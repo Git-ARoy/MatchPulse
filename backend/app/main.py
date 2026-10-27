@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import uuid
 from typing import Any
 
@@ -277,6 +278,12 @@ async def ingest_batch(match_id: str, body: BatchRequest, request: Request) -> B
     )
 
 
+@app.get("/api/v1/matches")
+def list_active_matches() -> dict[str, Any]:
+    """Discover all active matches currently registered in the ledger."""
+    return {"items": service.list_matches()}
+
+
 @app.get("/api/v1/matches/{match_id}/state", response_model=None, responses={404: {"model": ErrorResponse}})
 def get_state(match_id: str, request: Request) -> dict[str, Any] | JSONResponse:
     try:
@@ -284,6 +291,23 @@ def get_state(match_id: str, request: Request) -> dict[str, Any] | JSONResponse:
     except MatchNotFoundError as error:
         return error_response(request, 404, "MATCH_NOT_FOUND", str(error))
     return match_state
+
+
+@app.get("/api/v1/matches/{match_id}/tracking", response_model=None, responses={404: {"model": ErrorResponse}})
+async def get_match_tracking(match_id: str, request: Request) -> dict[str, Any] | JSONResponse:
+    """Fetch live 22-player and ball tracking telemetry from the simulation engine."""
+    import httpx
+    sim_url = os.getenv("SIMULATOR_API_URL", "http://localhost:8050").rstrip("/")
+    try:
+        async with httpx.AsyncClient(timeout=1.5) as client:
+            res = await client.get(f"{sim_url}/api/simulation/tracking")
+            if res.status_code == 200:
+                data = res.json()
+                if data.get("match_id") == match_id:
+                    return data
+    except Exception:
+        pass
+    return error_response(request, 404, "TRACKING_UNAVAILABLE", "No live simulation tracking source connected for this match.")
 
 
 @app.get("/api/v1/matches/{match_id}/events", response_model=EventsResponse, responses={404: {"model": ErrorResponse}})

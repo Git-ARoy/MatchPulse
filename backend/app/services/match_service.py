@@ -223,6 +223,24 @@ class MatchService:
         session = self._sessions.get(match_id)
         return bool(session and session.events)
 
+    def list_matches(self) -> list[dict[str, Any]]:
+        """Return all active match sessions currently in memory."""
+        results = []
+        for match_id, session in self._sessions.items():
+            state = session.tracker.state
+            results.append({
+                "match_id": match_id,
+                "status": state.status.value,
+                "match_clock": {"minute": state.match_clock.minute, "second": state.match_clock.second},
+                "teams": {tid: {"goals": t.goals, "shots": t.shots} for tid, t in state.teams.items()},
+                "data_source": session.data_source,
+                "synthetic": session.synthetic,
+                "live_feed_available": session.live_feed_available,
+                "event_count": len(session.events),
+                "insight_count": len(session.insights),
+            })
+        return results
+
     def get_insight(self, insight_id: str) -> Insight:
         try:
             return self._insight_index[insight_id]

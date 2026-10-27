@@ -113,50 +113,28 @@ export function RecapModal({ isOpen, onClose, matchId, score }: RecapModalProps)
 
   return (
     <AnimatePresence>
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(15, 23, 42, 0.65)",
-          backdropFilter: "blur(8px)",
-          display: "grid",
-          placeItems: "center",
-          zIndex: 10000,
-          padding: "24px",
-        }}
-        onClick={onClose}
-      >
+      <div className="recap-modal-backdrop" onClick={onClose}>
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ duration: 0.25 }}
           onClick={(e) => e.stopPropagation()}
-          style={{
-            background: "#ffffff",
-            border: "1px solid var(--line)",
-            borderRadius: "20px",
-            padding: "32px",
-            maxWidth: "760px",
-            width: "100%",
-            boxShadow: "var(--shadow-xl)",
-            maxHeight: "90vh",
-            overflowY: "auto",
-            display: "flex",
-            flexDirection: "column",
-            gap: "20px",
-          }}
+          className="recap-modal-box"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Match Recap Modal"
         >
           {/* Header */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px" }}>
+          <div className="recap-modal-header">
             <div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 10px", background: "rgba(56, 0, 60, 0.06)", borderRadius: "999px", fontSize: "11px", fontWeight: 800, color: "var(--pl-purple)", textTransform: "uppercase" }}>
+              <div className="recap-badge-tag">
                 <span>🎙️ PREMIER LEAGUE STUDIO RECAP</span>
               </div>
-              <h2 style={{ fontSize: "22px", fontWeight: 900, color: "var(--pl-purple)", marginTop: "8px" }}>
+              <h2 className="recap-title">
                 Automated Match Recap Studio
               </h2>
-              <p style={{ fontSize: "12px", color: "var(--ink-muted)" }}>
+              <p className="recap-subtitle">
                 Audited match narrative grounded in 2,714 events with zero fabricated stats.
               </p>
             </div>
@@ -164,14 +142,15 @@ export function RecapModal({ isOpen, onClose, matchId, score }: RecapModalProps)
             <button
               type="button"
               onClick={onClose}
-              style={{ background: "var(--surface-subtle)", border: "none", borderRadius: "50%", width: "32px", height: "32px", cursor: "pointer", fontSize: "14px", fontWeight: 800 }}
+              className="recap-close-circle-btn"
+              aria-label="Close Recap Modal"
             >
               ✕
             </button>
           </div>
 
           {/* Language Selector Tabs */}
-          <div style={{ display: "flex", background: "var(--surface-subtle)", padding: "4px", borderRadius: "10px", gap: "4px", flexWrap: "wrap" }}>
+          <div className="recap-lang-tabs" role="tablist" aria-label="Recap Language">
             {[
               { id: "en", label: "🇬🇧 English" },
               { id: "es", label: "🇪🇸 Español" },
@@ -183,20 +162,10 @@ export function RecapModal({ isOpen, onClose, matchId, score }: RecapModalProps)
               <button
                 key={item.id}
                 type="button"
+                role="tab"
+                aria-selected={lang === item.id}
                 onClick={() => setLang(item.id)}
-                style={{
-                  flex: 1,
-                  minWidth: "90px",
-                  padding: "6px 10px",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  border: "none",
-                  borderRadius: "7px",
-                  cursor: "pointer",
-                  background: lang === item.id ? "#ffffff" : "transparent",
-                  color: lang === item.id ? "var(--pl-purple)" : "var(--ink-secondary)",
-                  boxShadow: lang === item.id ? "var(--shadow-sm)" : "none",
-                }}
+                className={`recap-lang-btn ${lang === item.id ? "active" : ""}`}
               >
                 {item.label}
               </button>
@@ -204,58 +173,46 @@ export function RecapModal({ isOpen, onClose, matchId, score }: RecapModalProps)
           </div>
 
           {/* Narrative Body */}
-          <div style={{ background: "rgba(5, 150, 105, 0.04)", border: "1px solid rgba(5, 150, 105, 0.2)", borderRadius: "14px", padding: "18px 20px" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: 900, color: "var(--pl-purple)" }}>
+          <div className="recap-narrative-card">
+            <h3 className="recap-narrative-headline">
               {currentRecap.headline}
             </h3>
-            <p style={{ fontSize: "13px", lineHeight: "1.7", color: "var(--ink-secondary)", marginTop: "8px" }}>
+            <p className="recap-narrative-summary">
               {currentRecap.summary}
             </p>
           </div>
 
           {/* Control vs. Chaos Metric Bar */}
-          <div style={{ background: "#ffffff", border: "1px solid var(--line)", borderRadius: "14px", padding: "16px 20px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-              <span style={{ fontSize: "11px", fontWeight: 800, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+          <div className="recap-chaos-card">
+            <div className="recap-chaos-header">
+              <span className="chaos-label">
                 Stage (iv) Control vs. Chaos Index
               </span>
-              <span style={{ fontSize: "12px", fontWeight: 800, color: "var(--pitch-emerald)" }}>
+              <span className="chaos-status">
                 Tactical Positional Dominance
               </span>
             </div>
 
-            <div style={{ height: "10px", background: "var(--surface-subtle)", borderRadius: "999px", overflow: "hidden", display: "flex" }}>
-              <div style={{ width: "68%", height: "100%", background: "var(--pitch-emerald)" }} title="Control: 68%" />
-              <div style={{ width: "32%", height: "100%", background: "var(--accent-crimson)" }} title="Chaos / Transitions: 32%" />
+            <div className="chaos-track-bar">
+              <div className="chaos-fill-control" title="Control: 68%" />
+              <div className="chaos-fill-chaos" title="Chaos / Transitions: 32%" />
             </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--ink-secondary)", marginTop: "6px" }}>
+            <div className="chaos-legend-row">
               <span>🛡️ Structured Control: <strong>68%</strong></span>
               <span>⚡ Transition Volatility: <strong>32%</strong></span>
             </div>
           </div>
 
           {/* Chronological Milestones Timeline */}
-          <div>
-            <div style={{ fontSize: "11px", fontWeight: 800, color: "var(--ink-muted)", textTransform: "uppercase", marginBottom: "10px" }}>
+          <div className="recap-timeline-group">
+            <div className="timeline-title">
               Turning Points & Milestones Timeline
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div className="timeline-items-list">
               {currentRecap.milestones.map((milestone, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    background: "var(--surface-subtle)",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    fontSize: "12px",
-                    color: "var(--ink-secondary)",
-                  }}
-                >
-                  <span style={{ color: "var(--pitch-emerald)", fontWeight: 900 }}>•</span>
+                <div key={idx} className="timeline-milestone-row">
+                  <span className="milestone-dot">•</span>
                   <span>{milestone}</span>
                 </div>
               ))}
@@ -263,25 +220,23 @@ export function RecapModal({ isOpen, onClose, matchId, score }: RecapModalProps)
           </div>
 
           {/* Footer Actions */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "14px", borderTop: "1px solid var(--line)" }}>
-            <span style={{ fontSize: "11px", color: "var(--pitch-emerald)", fontWeight: 700 }}>
+          <div className="recap-modal-footer">
+            <span className="recap-verification-stamp">
               ✓ Verified by Evidence Auditor in 0.12ms
             </span>
 
-            <div style={{ display: "flex", gap: "10px" }}>
+            <div className="recap-actions-group">
               <button
                 type="button"
                 onClick={handleCopyScript}
-                className="btn-secondary"
-                style={{ fontSize: "12px", padding: "8px 14px" }}
+                className="btn-secondary recap-copy-btn"
               >
                 {copied ? "✓ Copied to Clipboard!" : "📋 Copy Broadcast Script"}
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="btn-primary"
-                style={{ fontSize: "12px", padding: "8px 18px" }}
+                className="btn-primary recap-done-btn"
               >
                 Done
               </button>

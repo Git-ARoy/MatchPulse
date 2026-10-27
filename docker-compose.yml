@@ -31,3 +31,15 @@ services:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
     depends_on:
       - backend
+
+  simulator:
+    build:
+      context: ./simulator
+      dockerfile: Dockerfile
+    ports:
+      - "8050:8050"
+    environment:
+      - MATCHPULSE_API_URL=http://backend:8000
+      - SIMULATOR_PORT=8050
+    depends_on:
+      - backend
