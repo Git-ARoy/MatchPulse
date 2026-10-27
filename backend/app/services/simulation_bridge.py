@@ -6,11 +6,17 @@ simulator container (port 8050) is offline.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
+import urllib.error
+import urllib.request
 from typing import Any
 
-import httpx
+try:
+    import httpx
+except ImportError:
+    httpx = None  # type: ignore
 
 from app.domain.events import CanonicalEvent
 from app.services.match_service import MatchService
@@ -57,16 +63,56 @@ class SimulationBridge:
             )
         return self._in_process_sim
 
+    async def _http_get(self, url: str, timeout: float = 1.0) -> dict[str, Any] | None:
+        if httpx is not None:
+            try:
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    res = await client.get(url)
+                    if res.status_code == 200:
+                        return res.json()
+            except Exception:
+                return None
+        else:
+            def _sync_get() -> dict[str, Any] | None:
+                req = urllib.request.Request(url, headers={"User-Agent": "MatchPulse"})
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    if resp.status == 200:
+                        return json.loads(resp.read().decode())
+                return None
+            try:
+                return await asyncio.to_thread(_sync_get)
+            except Exception:
+                return None
+        return None
+
+    async def _http_post(self, url: str, payload: dict[str, Any] | None = None, timeout: float = 1.0) -> dict[str, Any] | None:
+        if httpx is not None:
+            try:
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    res = await client.post(url, json=payload or {})
+                    if res.status_code == 200:
+                        return res.json()
+            except Exception:
+                return None
+        else:
+            def _sync_post() -> dict[str, Any] | None:
+                data = json.dumps(payload or {}).encode("utf-8")
+                req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json", "User-Agent": "MatchPulse"}, method="POST")
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    if resp.status == 200:
+                        return json.loads(resp.read().decode())
+                return None
+            try:
+                return await asyncio.to_thread(_sync_post)
+            except Exception:
+                return None
+        return None
+
     async def _check_external(self) -> bool:
         """Probe external simulator service."""
-        try:
-            async with httpx.AsyncClient(timeout=0.6) as client:
-                res = await client.get(f"{self.external_url}/api/simulation/status")
-                self._external_available = (res.status_code == 200)
-                return self._external_available
-        except Exception:
-            self._external_available = False
-            return False
+        res = await self._http_get(f"{self.external_url}/api/simulation/status", timeout=0.6)
+        self._external_available = bool(res)
+        return self._external_available
 
     async def _run_local_tick_loop(self) -> None:
         """In-process simulation tick loop (100ms interval = 10Hz)."""
@@ -86,16 +132,11 @@ class SimulationBridge:
 
     async def get_status(self, match_id: str = "synthetic_ridge_harbor") -> dict[str, Any]:
         if await self._check_external():
-            try:
-                async with httpx.AsyncClient(timeout=1.0) as client:
-                    res = await client.get(f"{self.external_url}/api/simulation/status")
-                    if res.status_code == 200:
-                        data = res.json()
-                        data["mode"] = "external_service"
-                        data["connected"] = True
-                        return data
-            except Exception:
-                pass
+            data = await self._http_get(f"{self.external_url}/api/simulation/status", timeout=1.0)
+            if data:
+                data["mode"] = "external_service"
+                data["connected"] = True
+                return data
 
         sim = self._get_or_create_local_sim(match_id)
         if not sim:
@@ -121,12 +162,9 @@ class SimulationBridge:
 
     async def start(self, match_id: str = "synthetic_ridge_harbor") -> dict[str, Any]:
         if await self._check_external():
-            try:
-                async with httpx.AsyncClient(timeout=1.0) as client:
-                    res = await client.post(f"{self.external_url}/api/simulation/start")
-                    return res.json()
-            except Exception:
-                pass
+            res = await self._http_post(f"{self.external_url}/api/simulation/start")
+            if res:
+                return res
 
         sim = self._get_or_create_local_sim(match_id)
         sim.start()
@@ -136,12 +174,9 @@ class SimulationBridge:
 
     async def pause(self) -> dict[str, Any]:
         if await self._check_external():
-            try:
-                async with httpx.AsyncClient(timeout=1.0) as client:
-                    res = await client.post(f"{self.external_url}/api/simulation/pause")
-                    return res.json()
-            except Exception:
-                pass
+            res = await self._http_post(f"{self.external_url}/api/simulation/pause")
+            if res:
+                return res
 
         if self._in_process_sim:
             self._in_process_sim.pause()
@@ -149,12 +184,9 @@ class SimulationBridge:
 
     async def resume(self) -> dict[str, Any]:
         if await self._check_external():
-            try:
-                async with httpx.AsyncClient(timeout=1.0) as client:
-                    res = await client.post(f"{self.external_url}/api/simulation/resume")
-                    return res.json()
-            except Exception:
-                pass
+            res = await self._http_post(f"{self.external_url}/api/simulation/resume")
+            if res:
+                return res
 
         if self._in_process_sim:
             self._in_process_sim.resume()
@@ -164,12 +196,9 @@ class SimulationBridge:
 
     async def set_speed(self, multiplier: float) -> dict[str, Any]:
         if await self._check_external():
-            try:
-                async with httpx.AsyncClient(timeout=1.0) as client:
-                    res = await client.post(f"{self.external_url}/api/simulation/speed", json={"multiplier": multiplier})
-                    return res.json()
-            except Exception:
-                pass
+            res = await self._http_post(f"{self.external_url}/api/simulation/speed", payload={"multiplier": multiplier})
+            if res:
+                return res
 
         if self._in_process_sim:
             self._in_process_sim.set_speed(multiplier)
@@ -178,12 +207,9 @@ class SimulationBridge:
 
     async def reset(self, matchup_id: str | None = None) -> dict[str, Any]:
         if await self._check_external():
-            try:
-                async with httpx.AsyncClient(timeout=1.0) as client:
-                    res = await client.post(f"{self.external_url}/api/simulation/reset", json={"matchup_id": matchup_id})
-                    return res.json()
-            except Exception:
-                pass
+            res = await self._http_post(f"{self.external_url}/api/simulation/reset", payload={"matchup_id": matchup_id})
+            if res:
+                return res
 
         target_id = matchup_id or "synthetic_ridge_harbor"
         if self._in_process_sim:
@@ -194,12 +220,9 @@ class SimulationBridge:
 
     async def inject(self, action: str, team_id: str | None = None) -> dict[str, Any]:
         if await self._check_external():
-            try:
-                async with httpx.AsyncClient(timeout=1.0) as client:
-                    res = await client.post(f"{self.external_url}/api/simulation/inject", json={"action": action, "team_id": team_id})
-                    return res.json()
-            except Exception:
-                pass
+            res = await self._http_post(f"{self.external_url}/api/simulation/inject", payload={"action": action, "team_id": team_id})
+            if res:
+                return res
 
         if not self._in_process_sim:
             self._get_or_create_local_sim()
@@ -219,18 +242,13 @@ class SimulationBridge:
 
     async def get_tracking(self, match_id: str) -> dict[str, Any] | None:
         if await self._check_external():
-            try:
-                async with httpx.AsyncClient(timeout=1.0) as client:
-                    res = await client.get(f"{self.external_url}/api/simulation/tracking")
-                    if res.status_code == 200:
-                        data = res.json()
-                        if data.get("match_id") == match_id:
-                            return data
-            except Exception:
-                pass
+            data = await self._http_get(f"{self.external_url}/api/simulation/tracking")
+            if data and data.get("match_id") == match_id:
+                return data
 
-        if self._in_process_sim and self._in_process_sim.match_id == match_id:
-            return self._in_process_sim.get_snapshot()
+        sim = self._get_or_create_local_sim(match_id)
+        if sim:
+            return sim.get_snapshot()
         return None
 
     def list_matchups(self) -> list[dict[str, Any]]:
