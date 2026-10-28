@@ -16,7 +16,7 @@ type Scenario = { scenario_id: string; title: string; description: string; match
 type ActiveMatch = { match_id: string; status: string; match_clock: { minute: number; second: number }; teams: Record<string, { goals: number }>; event_count: number };
 type Recap = { headline: string; summary: string; language: string; evidence_event_ids: string[] };
 
-const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const api = process.env.NEXT_PUBLIC_API_URL || "";
 const initialMatchId = "synthetic_ridge_harbor";
 const display = (value: string) => value.replaceAll("_", " ").replace(/\b\w/g, item => item.toUpperCase());
 const clock = (value?: { minute: number; second: number }) => value ? `${value.minute}:${String(value.second).padStart(2, "0")}` : "--:--";
@@ -105,7 +105,10 @@ export default function DashboardPage() {
   }, [loadActiveMatches]);
   useEffect(() => {
     if (!state?.live_feed_available) return;
-    const socket = new WebSocket(api.replace(/^http/, "ws") + `/api/v1/matches/${encodeURIComponent(matchId)}/live-stream`);
+    const wsProto = typeof window !== "undefined" && window.location.protocol === "https:" ? "wss:" : "ws:";
+    const socketBase = api ? api.replace(/^http/, "ws") : (typeof window !== "undefined" ? `${wsProto}//${window.location.host}` : "");
+    if (!socketBase) return;
+    const socket = new WebSocket(`${socketBase}/api/v1/matches/${encodeURIComponent(matchId)}/live-stream`);
     socket.onmessage = () => { void loadMatch(); void loadActiveMatches(); };
     return () => socket.close();
   }, [loadActiveMatches, loadMatch, matchId, state?.live_feed_available]);

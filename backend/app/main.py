@@ -48,7 +48,12 @@ app = FastAPI(title="MatchPulse API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://matchpulse-web.salmondesert-24a13d3b.southindia.azurecontainerapps.io",
+    ],
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -91,6 +96,12 @@ async def request_validation_error(request: Request, exc: RequestValidationError
         for error in exc.errors()
     ]
     return error_response(request, status.HTTP_422_UNPROCESSABLE_CONTENT, "VALIDATION_ERROR", "The request payload is invalid.", details)
+
+
+@app.get("/healthz")
+@app.get("/health")
+def root_health() -> dict[str, str]:
+    return {"status": "ok", "service": "matchpulse-api", "version": "0.1.0"}
 
 
 @app.get("/api/v1/health")

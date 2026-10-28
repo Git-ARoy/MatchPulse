@@ -84,7 +84,7 @@ export interface MatchRecap {
   };
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export async function fetchMatchState(matchId: string): Promise<MatchStateView | null> {
   try {

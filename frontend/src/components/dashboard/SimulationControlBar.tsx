@@ -62,6 +62,11 @@ export function SimulationControlBar({ apiUrl, matchId, onRefreshMatch }: Simula
         setFeedback(isRunning ? "Simulation paused" : "Autonomous simulation started");
         setTimeout(() => setFeedback(null), 2500);
         onRefreshMatch();
+      } else {
+        const errData = await res.json().catch(() => null);
+        const errMsg = errData?.message || errData?.detail || `Simulation error (${res.status})`;
+        setFeedback(errMsg);
+        setTimeout(() => setFeedback(null), 3000);
       }
     } catch {
       setFeedback("Simulation action failed");
@@ -83,9 +88,13 @@ export function SimulationControlBar({ apiUrl, matchId, onRefreshMatch }: Simula
         setSpeed(multiplier);
         setFeedback(`Speed set to ${multiplier}x`);
         setTimeout(() => setFeedback(null), 2000);
+      } else {
+        setFeedback("Failed to update speed");
+        setTimeout(() => setFeedback(null), 2000);
       }
     } catch {
-      // Ignored
+      setFeedback("Speed change failed");
+      setTimeout(() => setFeedback(null), 2000);
     } finally {
       setActionPending(false);
     }
@@ -103,9 +112,13 @@ export function SimulationControlBar({ apiUrl, matchId, onRefreshMatch }: Simula
         setFeedback(`Injected ${action.replace("_", " ")} moment into live simulation!`);
         setTimeout(() => setFeedback(null), 3000);
         onRefreshMatch();
+      } else {
+        setFeedback(`Failed to inject ${action}`);
+        setTimeout(() => setFeedback(null), 2500);
       }
     } catch {
-      // Ignored
+      setFeedback("Scenario injection failed");
+      setTimeout(() => setFeedback(null), 2500);
     } finally {
       setActionPending(false);
     }
@@ -124,9 +137,13 @@ export function SimulationControlBar({ apiUrl, matchId, onRefreshMatch }: Simula
         setFeedback("Simulation match reset");
         setTimeout(() => setFeedback(null), 2500);
         onRefreshMatch();
+      } else {
+        setFeedback("Failed to reset match");
+        setTimeout(() => setFeedback(null), 2500);
       }
     } catch {
-      // Ignored
+      setFeedback("Reset action failed");
+      setTimeout(() => setFeedback(null), 2500);
     } finally {
       setActionPending(false);
     }

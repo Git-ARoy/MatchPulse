@@ -7,7 +7,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 type Scenario = { scenario_id: string; title: string; description: string; match_id: string };
 type Insight = { headline: string; summary: string; source_event_ids: string[]; validation?: { status: string } };
-const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const api = process.env.NEXT_PUBLIC_API_URL || "";
 
 export function LiveInteractivePreview() {
   const reduceMotion = useReducedMotion();

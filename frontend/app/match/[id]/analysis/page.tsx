@@ -12,7 +12,7 @@ type State = { synthetic: boolean; match_clock: { minute: number; second: number
 type SimPlayer = { id: string; name: string; number: number; role: string; x: number; y: number; speed_kph?: number };
 type SimTracking = { match_id: string; home_team?: { players: SimPlayer[] }; away_team?: { players: SimPlayer[] }; ball?: { x: number; y: number; speed_kph: number } };
 
-const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const api = process.env.NEXT_PUBLIC_API_URL || "";
 const name = (value?: string) => (value ?? "Unknown").replaceAll("_", " ").replace(/\b\w/g, letter => letter.toUpperCase());
 const clock = (value?: { minute: number; second: number }) => value ? `${value.minute}:${String(value.second).padStart(2, "0")}` : "--:--";
 
@@ -53,7 +53,10 @@ export default function AnalysisPage({ params }: { params: Promise<{ id: string 
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
     if (!state?.live_feed_available) return;
-    const socket = new WebSocket(api.replace(/^http/, "ws") + `/api/v1/matches/${encodeURIComponent(matchId)}/live-stream`);
+    const wsProto = typeof window !== "undefined" && window.location.protocol === "https:" ? "wss:" : "ws:";
+    const socketBase = api ? api.replace(/^http/, "ws") : (typeof window !== "undefined" ? `${wsProto}//${window.location.host}` : "");
+    if (!socketBase) return;
+    const socket = new WebSocket(`${socketBase}/api/v1/matches/${encodeURIComponent(matchId)}/live-stream`);
     socket.onmessage = () => void load();
     return () => socket.close();
   }, [load, matchId, state?.live_feed_available]);
